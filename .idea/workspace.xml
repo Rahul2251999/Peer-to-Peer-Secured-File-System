@@ -4,17 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/FileDistributionService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Peer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/constants/Constants.java" afterDir="false" />
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/FDS/ClentHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/payloads/Payload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/peer/ClientHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/peer/Menu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/FDS/FileDistributionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/peer/Peer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +48,7 @@
     &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.FDS">
+  <component name="RunManager" selected="Application.peer 3">
     <configuration name="Constants" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.constants.Constants" />
       <module name="Peer File Sharing" />
@@ -60,14 +57,14 @@
       </method>
     </configuration>
     <configuration name="FDS" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="FileDistributionService" />
+      <option name="MAIN_CLASS_NAME" value="com.FDS.FileDistributionService" />
       <module name="Peer File Sharing" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="peer 1" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="Peer" />
+      <option name="MAIN_CLASS_NAME" value="com.peer.Peer" />
       <module name="Peer File Sharing" />
       <option name="PROGRAM_PARAMETERS" value="AZ7853 8001" />
       <method v="2">
@@ -75,7 +72,7 @@
       </method>
     </configuration>
     <configuration name="peer 2" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="Peer" />
+      <option name="MAIN_CLASS_NAME" value="com.peer.Peer" />
       <module name="Peer File Sharing" />
       <option name="PROGRAM_PARAMETERS" value="BK6541 8002" />
       <method v="2">
@@ -83,7 +80,7 @@
       </method>
     </configuration>
     <configuration name="peer 3" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="Peer" />
+      <option name="MAIN_CLASS_NAME" value="com.peer.Peer" />
       <module name="Peer File Sharing" />
       <option name="PROGRAM_PARAMETERS" value="CS5328 8003" />
       <method v="2">
@@ -107,6 +104,14 @@
       <option name="presentableId" value="Default" />
       <updated>1678657301723</updated>
     </task>
+    <task id="LOCAL-00001" summary="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back">
+      <created>1680969374570</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1680969374570</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -119,5 +124,25 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back" />
+    <option name="LAST_COMMIT_MESSAGE" value="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/peer/Peer.java</url>
+          <line>42</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/peer/Peer.java</url>
+          <line>39</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
