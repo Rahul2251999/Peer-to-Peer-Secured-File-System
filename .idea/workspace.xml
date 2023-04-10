@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/FDS/ClentHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/payloads/Payload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/peer/ClientHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/peer/Menu.java" afterDir="false" />
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="refactor add Objects for i/o">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/FDS/FileDistributionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/peer/Peer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/FDS/ClentHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/payloads/Payload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/payloads/Payload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/peer/Menu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/peer/Peer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +109,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680969374570</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="refactor add Objects for i/o">
+      <created>1680989194170</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1680989194170</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -127,7 +132,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back" />
-    <option name="LAST_COMMIT_MESSAGE" value="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back" />
+    <MESSAGE value="refactor add Objects for i/o" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor add Objects for i/o" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

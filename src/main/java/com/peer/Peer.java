@@ -36,7 +36,7 @@ public class Peer {
         PEER_ID = args[0];
         int PORT_NO = Integer.parseInt(args[1]);
 
-        Menu menu = new Menu(PEER_ID);
+        Menu menu = new Menu(PEER_ID, PORT_NO);
         Thread thread = new Thread(menu);
         thread.start();
 

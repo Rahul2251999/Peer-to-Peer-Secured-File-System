@@ -53,6 +53,19 @@ class ClientHandler implements Runnable {
 
     private String processInput(Payload clientPayload) {
         System.out.println(ANSI_BLUE + "Serving Peer: " + clientPayload.getPeerId() + ANSI_RESET);
+
+        String command = clientPayload.getCommand();
+
+        switch (command){
+            case "init":
+                String peer_id = clientPayload.getPeerId();
+                String port_no = String.valueOf(clientPayload.getPortNo());
+                System.out.println(peer_id + " " + port_no);
+                break;
+            default:
+                System.out.println(ANSI_YELLOW + "Invalid command issued: " + command + ANSI_RESET);
+        }
+
         System.out.println(ANSI_BLUE + clientPayload.getCommand() + ANSI_RESET);
         return "Server ACK: " + clientPayload.getCommand();
     }
