@@ -1,9 +1,12 @@
-package com.FDS;
+package app.FDS;
+
+import app.MongoConnectionManager;
 
 import java.net.*;
 import java.io.*;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import static com.constants.Constants.TerminalColors.*;
+import static app.constants.Constants.TerminalColors.*;
 
 public class FileDistributionService {
     private static int PORT = 8080;
@@ -11,6 +14,12 @@ public class FileDistributionService {
 
     public static void main(String[] args) {
         try {
+            // load properties
+            Properties properties = new Properties();
+            properties.load(new FileInputStream("src/main/resources/config.properties"));
+
+            new MongoConnectionManager(properties.getProperty("CONNECTION_STRING"), properties.getProperty("DATABASE_NAME"));
+
             serverSocket = new ServerSocket(PORT);
             System.out.println(ANSI_BLUE + "Trying to start File Distribution Server on " + PORT + ANSI_RESET);
             TimeUnit.SECONDS.sleep(1);

@@ -1,18 +1,19 @@
-package com.peer;
+package app.peer;
 
-import com.payloads.Payload;
+import app.Models.Payload;
+import app.Models.PeerInfo;
 
 import java.io.*;
 import java.net.Socket;
 
-import static com.constants.Constants.TerminalColors.*;
+import static app.constants.Constants.TerminalColors.*;
 
 public class Menu implements Runnable {
     private static Socket socket = null;
     private static String IP_ADDRESS = "127.0.0.1";
     private static int FDS_PORT = 8080;
-    private int port_no;
     private String peer_ID = null;
+    private int port_no;
 
     public Menu(String PEER_ID, int PORT_NO) {
         this.peer_ID = PEER_ID;
@@ -34,15 +35,14 @@ public class Menu implements Runnable {
                 if (userInput == null || userInput.equalsIgnoreCase("exit")) {
                     break;
                 }
+                PeerInfo peerInfo = new PeerInfo(peer_ID, port_no);
                 Payload payload = new Payload.Builder()
                         .setCommand(userInput)
-                        .setPeerId(peer_ID)
-                        .setPortNo(port_no)
+                        .setPeerInfo(peerInfo)
                         .build();
                 serverWriter.writeObject(payload);
                 serverWriter.flush();
 
-                socket.setSoTimeout(2000);
                 String serverResponse = serverReader.readUTF();
                 System.out.println(ANSI_GREEN + serverResponse + ANSI_RESET);
 

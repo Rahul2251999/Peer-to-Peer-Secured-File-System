@@ -1,4 +1,4 @@
-package com.constants;
+package app.constants;
 
 public class Constants {
     public class TerminalColors {

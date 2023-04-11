@@ -1,9 +1,9 @@
-package com.peer;
+package app.peer;
 
 import java.net.*;
 import java.io.*;
 
-import static com.constants.Constants.TerminalColors.*;
+import static app.constants.Constants.TerminalColors.*;
 
 public class Peer {
     private static String IP_ADDRESS = "127.0.0.1";
@@ -37,8 +37,7 @@ public class Peer {
         int PORT_NO = Integer.parseInt(args[1]);
 
         Menu menu = new Menu(PEER_ID, PORT_NO);
-        Thread thread = new Thread(menu);
-        thread.start();
+        Thread thread = new Thread(menu);thread.start();
 
         serverSocket(PORT_NO);
     }

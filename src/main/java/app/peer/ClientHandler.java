@@ -1,4 +1,4 @@
-package com.peer;
+package app.peer;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import static com.constants.Constants.TerminalColors.*;
+import static app.constants.Constants.TerminalColors.*;
 
 class ClientHandler implements Runnable {
     private Socket clientSocket;

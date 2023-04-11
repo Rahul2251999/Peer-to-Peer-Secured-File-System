@@ -1,47 +1,35 @@
-package com.payloads;
+package app.Models;
 
 import java.io.Serializable;
 
 public class Payload implements Serializable {
     private final String command;
-    private final String peer_id;
-    private final int port_no;
+    private final PeerInfo peerInfo;
 
     private Payload(Builder builder) {
         this.command = builder.command;
-        this.peer_id = builder.peer_id;
-        this.port_no = builder.port_no;
+        this.peerInfo = builder.peerInfo;
     }
 
     public String getCommand() {
         return command;
     }
 
-    public String getPeerId() {
-        return peer_id;
-    }
-
-    public int getPortNo() {
-        return port_no;
+    public PeerInfo getPeerInfo() {
+        return peerInfo;
     }
 
     public static class Builder {
         private String command;
-        private String peer_id;
-        private int port_no;
+        private PeerInfo peerInfo;
 
         public Builder setCommand(String command) {
             this.command = command;
             return this;
         }
 
-        public Builder setPeerId(String peer_id) {
-            this.peer_id = peer_id;
-            return this;
-        }
-
-        public Builder setPortNo(int port_no) {
-            this.port_no = port_no;
+        public Builder setPeerInfo(PeerInfo peerInfo) {
+            this.peerInfo = peerInfo;
             return this;
         }
 
