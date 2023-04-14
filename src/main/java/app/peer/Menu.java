@@ -55,7 +55,7 @@ public class Menu implements Runnable {
             System.out.println(ANSI_BLUE + "Connected to Certificate Authority" + ANSI_RESET);
 
             BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
-            DataInputStream FDSReader = new DataInputStream(new BufferedInputStream(FDSSocket.getInputStream()));
+            ObjectInputStream FDSReader = new ObjectInputStream(FDSSocket.getInputStream());
             ObjectOutputStream FDSWriter = new ObjectOutputStream(FDSSocket.getOutputStream());
             ObjectOutputStream CAWriter = new ObjectOutputStream(CASocket.getOutputStream());
             ObjectInputStream CAReader = new ObjectInputStream(CASocket.getInputStream());
