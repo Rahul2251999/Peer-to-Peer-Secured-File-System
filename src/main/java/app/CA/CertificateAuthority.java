@@ -1,34 +1,39 @@
-package app.FDS;
-
-import java.net.*;
-import java.io.*;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+package app.CA;
 
 import app.MongoConnectionManager;
 import app.constants.Constants;
 import app.constants.KeyManager;
 import app.utils.RSA;
 
-import static app.constants.Constants.TerminalColors.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
-public class FileDistributionService {
-    private static int PORT = 8080;
+import static app.constants.Constants.TerminalColors.*;
+import static app.constants.Constants.TerminalColors.ANSI_RED;
+
+public class CertificateAuthority {
+    private static int PORT = 9000;
     private static ServerSocket serverSocket = null;
     static Properties properties = new Properties();
 
     public static void generateKeysIfNotExists() throws IOException, NoSuchAlgorithmException {
-        File keysFolder = new File(Constants.FilePaths.FDSKeys);
+        File keysFolder = new File(Constants.FilePaths.CAKeys);
 
         if (!keysFolder.exists()) {
             keysFolder.mkdir();
         }
 
-        File privateKeyFile = new File(Constants.FilePaths.FDSKeys + "/private.der");
-        File publicKeyFile = new File(Constants.FilePaths.FDSKeys + "/public.der");
+        File privateKeyFile = new File(Constants.FilePaths.CAKeys + "/private.der");
+        File publicKeyFile = new File(Constants.FilePaths.CAKeys + "/public.der");
 
         if (!privateKeyFile.exists() || !publicKeyFile.exists()) {
             KeyPair keyPair = RSA.generateKeyPair(2048);
@@ -36,7 +41,7 @@ public class FileDistributionService {
             FileOutputStream fos = new FileOutputStream(publicKeyFile.getAbsolutePath());
             fos.write(keyPair.getPublic().getEncoded());
             fos.close();
-            properties.setProperty("FDS_PBK", Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
+            properties.setProperty("CA_PBK", Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
             properties.store(new FileOutputStream("src/main/resources/config.properties"), null);
 
             fos = new FileOutputStream(privateKeyFile.getAbsolutePath());
@@ -45,7 +50,7 @@ public class FileDistributionService {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String args[]) {
         try {
             // load properties
             properties.load(new FileInputStream("src/main/resources/config.properties"));
@@ -53,10 +58,10 @@ public class FileDistributionService {
             generateKeysIfNotExists();
 
             new MongoConnectionManager(properties.getProperty("CONNECTION_STRING"), properties.getProperty("DATABASE_NAME"));
-            new KeyManager(Constants.FilePaths.FDSKeys);
+            new KeyManager(Constants.FilePaths.CAKeys);
 
             serverSocket = new ServerSocket(PORT);
-            System.out.println(ANSI_BLUE + "Trying to start File Distribution Server on " + PORT + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Trying to start Certificate Authority on " + PORT + ANSI_RESET);
             TimeUnit.SECONDS.sleep(1);
             System.out.println(ANSI_BLUE + "Server started...\n" + ANSI_RESET);
 
@@ -72,7 +77,7 @@ public class FileDistributionService {
             System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
         } catch (InterruptedException e) {
             System.out.println(ANSI_RED + "InterruptedException: " + e.getMessage() + ANSI_RESET);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } finally {
             try {

@@ -2,23 +2,32 @@ package app.FDS;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.PrivateKey;
+import java.util.HashMap;
+import java.util.Map;
 
-import app.Models.PeerInfo;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
-import org.bson.Document;
+import app.Models.Payloads.InitPayload;
+import app.Models.Payloads.ResponsePayload;
 import app.MongoConnectionManager;
-import com.mongodb.client.MongoCollection;
+import app.constants.KeyManager;
+import app.utils.RSA;
 import com.mongodb.client.MongoDatabase;
 
-import app.Models.Payload;
+import app.Models.PeerDB;
+import app.Models.PeerInfo;
+import app.Models.Payloads.Payload;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import static app.constants.Constants.TerminalColors.*;
 
 class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private ObjectInputStream clientReader;
-    private DataOutputStream clientWriter;
+    private ObjectOutputStream clientWriter;
     private PeerInfo peerInfo;
+    private static Map<String, PeerDB> peerDBMap = new HashMap<>();
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -30,26 +39,26 @@ class ClientHandler implements Runnable {
             System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + "\n" + ANSI_RESET);
 
             clientReader = new ObjectInputStream(clientSocket.getInputStream());
-            clientWriter = new DataOutputStream(clientSocket.getOutputStream());
+            clientWriter = new ObjectOutputStream(clientSocket.getOutputStream());
 
             Payload clientInput;
             while ((clientInput = (Payload) clientReader.readObject()) != null) {
                 PeerInfo peerInfo = clientInput.getPeerInfo();
                 this.peerInfo = peerInfo;
-                String response = processInput(clientInput);
-                clientWriter.writeUTF(response);
+
+                ResponsePayload response = processInput(clientInput);
+                clientWriter.writeObject(response);
                 clientWriter.flush();
             }
         } catch (IOException e) {
             System.out.println(ANSI_RED + "Error: " + e.getMessage() + ANSI_RESET);
-            MongoDatabase database = MongoConnectionManager.getDatabase();
-            MongoCollection<Document> collection = database.getCollection("peer_info");
-            Document filter = new Document("peer_id", this.peerInfo.getPeer_id());
-            Document update = new Document("$set", new Document("is_active", false));
-
-            collection.findOneAndUpdate(filter, update);
+            PeerDB peerDBItem = peerDBMap.get(this.peerInfo.getPeer_id());
+            peerDBItem.setActive(false);
+            peerDBMap.put(this.peerInfo.getPeer_id(), peerDBItem);
         } catch (ClassNotFoundException e) {
             System.out.println(ANSI_RED + "ClassNotFoundException: " + e.getMessage() + ANSI_RESET);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 if (clientSocket != null) {
@@ -67,47 +76,35 @@ class ClientHandler implements Runnable {
         }
     }
 
-    private String processInput(Payload clientPayload) {
+    private ResponsePayload processInput(Payload clientPayload) throws Exception {
         PeerInfo peerInfo = clientPayload.getPeerInfo();
-        System.out.println(ANSI_BLUE + "Serving Peer: " + peerInfo.getPeer_id() + ANSI_RESET);
+        String peer_id = peerInfo.getPeer_id();
+        System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
+        System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET);
+
+        ResponsePayload responsePayload = null;
 
         String[] command = clientPayload.getCommand().split(" ", 2);
         String commandName = command[0];
         switch (commandName) {
-            case "init":
-                String peer_id = peerInfo.getPeer_id();
-                String port_no = String.valueOf(peerInfo.getPort_no());
+            case "registerPeer":
+                InitPayload initPayload = (InitPayload) clientPayload;
+                byte[] keyBytes = RSA.decrypt(initPayload.getKey(), KeyManager.getPrivateKey());
+                SecretKey key = new SecretKeySpec(keyBytes, "AES");
 
-                MongoDatabase database = MongoConnectionManager.getDatabase();
-                MongoCollection<Document> collection = database.getCollection("peer_info");
+                PeerDB peerDBItem = new PeerDB(peerInfo, true, key);
+                peerDBMap.put(peer_id, peerDBItem);
 
-                Document filter = new Document("peer_id", peer_id);
-
-                Document update = new Document("$set",
-                        new Document("port_no", port_no)
-                                .append("is_active", true));
-
-                FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
-                options.returnDocument(ReturnDocument.AFTER);
-
-                Document updatedDoc = collection.findOneAndUpdate(filter, update, options);
-                if (updatedDoc == null) {
-                    System.out.println("Document not found");
-                    // Insert a new document with the specified filter and update
-                    Document newDocument = new Document("port_no", port_no);
-                    newDocument.append("is_active", true);
-                    collection.insertOne(newDocument.append("peer_id", peer_id));
-                }
-
-                break;
-            case "":
-                String commandOptions = command[1];
+                String response = "Peer registered Successfully";
+                responsePayload = new ResponsePayload.Builder()
+                        .setStatusCode(200)
+                        .setMessage(response)
+                        .build();
                 break;
             default:
                 System.out.println(ANSI_YELLOW + "Invalid command issued: " + command + ANSI_RESET);
         }
 
-        System.out.println(ANSI_BLUE + clientPayload.getCommand() + ANSI_RESET);
-        return "Server ACK: " + clientPayload.getCommand();
+        return responsePayload;
     }
 }

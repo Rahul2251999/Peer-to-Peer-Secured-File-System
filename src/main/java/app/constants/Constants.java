@@ -12,4 +12,9 @@ public class Constants {
         public static final String ANSI_CYAN = "\u001B[36m";
         public static final String ANSI_WHITE = "\u001B[37m";
     }
+
+    public class FilePaths {
+        public static final String CAKeys = "./src/main/resources/CA/keys";
+        public static final String FDSKeys = "src/main/resources/FDS/keys";
+    }
 }

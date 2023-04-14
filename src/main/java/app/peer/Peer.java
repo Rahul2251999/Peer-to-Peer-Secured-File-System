@@ -1,5 +1,8 @@
 package app.peer;
 
+import app.constants.Constants;
+import app.constants.KeyManager;
+
 import java.net.*;
 import java.io.*;
 
@@ -35,6 +38,12 @@ public class Peer {
 
         PEER_ID = args[0];
         int PORT_NO = Integer.parseInt(args[1]);
+
+        String peerFolderName = "./src/main/resources/" + PEER_ID;
+        File folder = new File(peerFolderName);
+        folder.mkdir();
+        folder = new File(peerFolderName + "/FDS");
+        folder.mkdir();
 
         Menu menu = new Menu(PEER_ID, PORT_NO);
         Thread thread = new Thread(menu);thread.start();

@@ -4,19 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add init functionality">
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/PeerInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/MongoConnectionManager.java" afterDir="false" />
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add db">
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FetchKey.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Payload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ResponsePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/PeerDB.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/constants/KeyManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/utils/RSA.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/FDS/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/constants/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/payloads/Payload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/InitPayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/MongoConnectionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/MongoConnectionManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +33,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
@@ -50,14 +58,30 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "last_opened_file_path": "/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing",
+    "last_opened_file_path": "/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing/src/main/resources/FDS.keys",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
     "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
   }
 }]]></component>
-  <component name="RunManager" selected="Application.peer 1">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/FDS.keys" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/CA/keys" />
+      <recent name="$PROJECT_DIR$/src/main/resources/FDS/keys" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.FDS">
+    <configuration name="CA" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="app.CA.CertificateAuthority" />
+      <module name="Peer File Sharing" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="FDS" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.FDS.FileDistributionService" />
       <module name="Peer File Sharing" />
@@ -90,6 +114,7 @@
       </method>
     </configuration>
     <list>
+      <item itemvalue="Application.CA" />
       <item itemvalue="Application.peer 1" />
       <item itemvalue="Application.peer 2" />
       <item itemvalue="Application.peer 3" />
@@ -126,7 +151,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681093465371</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add db">
+      <created>1681172365932</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1681172365932</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -144,6 +176,33 @@
     <MESSAGE value="init commit: peers can connect to FDS, FDS can handle multiple peers simultaneously and send response back" />
     <MESSAGE value="refactor add Objects for i/o" />
     <MESSAGE value="add init functionality" />
-    <option name="LAST_COMMIT_MESSAGE" value="add init functionality" />
+    <MESSAGE value="add db" />
+    <option name="LAST_COMMIT_MESSAGE" value="add db" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>38</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
+          <line>80</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>87</line>
+          <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java</url>
+          <line>71</line>
+          <option name="timeStamp" value="57" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
