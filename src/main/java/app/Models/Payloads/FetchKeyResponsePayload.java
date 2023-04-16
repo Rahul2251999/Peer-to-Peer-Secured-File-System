@@ -2,14 +2,20 @@ package app.Models.Payloads;
 
 import java.io.Serializable;
 
-public class FetchKeyPayload extends ResponsePayload implements Serializable {
+public class FetchKeyResponsePayload extends ResponsePayload implements Serializable {
+    // key is a SecretKey instance but is
+    // encrypted using CertificateAuthority PrivateKey
     private final byte[] key;
 
-    public FetchKeyPayload(Builder builder) {
+    public FetchKeyResponsePayload(Builder builder) {
         super();
         this.statusCode = builder.statusCode;
         this.message = builder.message;
         this.key = builder.key;
+    }
+
+    public byte[] getKey() {
+        return key;
     }
 
     public static class Builder {
@@ -32,8 +38,8 @@ public class FetchKeyPayload extends ResponsePayload implements Serializable {
             return this;
         }
 
-        public FetchKeyPayload build() {
-            return new FetchKeyPayload(this);
+        public FetchKeyResponsePayload build() {
+            return new FetchKeyResponsePayload(this);
         }
     }
 }
