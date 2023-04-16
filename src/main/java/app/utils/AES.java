@@ -3,6 +3,7 @@ package app.utils;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class AES {
+    private static final String ALGORITHM = "AES";
     public static byte[] encrypt(SecretKey secretKey, byte[] plaintext) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         byte[] ivBytes = new byte[cipher.getBlockSize()];
@@ -49,5 +51,9 @@ public class AES {
         Path path = Paths.get(filePath);
         byte[] encodedKey = key.getEncoded();
         Files.write(path, encodedKey);
+    }
+
+    public static SecretKey getSecretKey(byte[] keyBytes) {
+        return new SecretKeySpec(keyBytes, ALGORITHM);
     }
 }
