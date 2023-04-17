@@ -1,5 +1,9 @@
 package app.constants;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Constants {
     public class TerminalColors {
         public static final String ANSI_RESET = "\u001B[0m";
@@ -16,5 +20,10 @@ public class Constants {
     public class FilePaths {
         public static final String CAKeys = "./src/main/resources/CA/keys";
         public static final String FDSKeys = "src/main/resources/FDS/keys";
+    }
+
+    public class ErrorClasses {
+        public static final Set<Integer> twoHundredClass = new HashSet<>(Arrays.asList(200, 201));
+        public static final Set<Integer> fourHundredClass = new HashSet<>(Arrays.asList(400, 401, 409, 404));
     }
 }
