@@ -5,5 +5,6 @@ public enum Commands {
     registerKey,
     fetchKey,
     mkdir,
-    touch
+    touch,
+    ls
 }
