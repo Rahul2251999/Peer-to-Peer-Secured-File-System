@@ -14,6 +14,10 @@ public class FetchKeyPayload extends Payload implements Serializable {
         this.requestingPeerId = builder.requestingPeerId;
     }
 
+    public String getRequestingPeerId() {
+        return requestingPeerId;
+    }
+
     public static class Builder {
         private PeerInfo peerInfo;
         private String command;
