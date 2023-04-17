@@ -1,12 +1,14 @@
 package app.utils;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class RandomUniquePicker {
-    public static String[] pick(String[] items, int n) {
+    public static Set<String> pick(String[] items, int n) {
         if (n > items.length) {
-            return items;
+            return new HashSet<>(Arrays.asList(items));
         }
 
         Random random = new Random();
@@ -20,8 +22,9 @@ public class RandomUniquePicker {
         }
 
         // Select the first n items of the shuffled array
-        String[] result = Arrays.copyOfRange(items, 0, n);
+        String[] uniqueItems = Arrays.copyOfRange(items, 0, n);
+        Set<String> set = new HashSet<>(Arrays.asList(String.valueOf(uniqueItems)));
 
-        return result;
+        return set;
     }
 }

@@ -1,22 +1,35 @@
 package app.peer;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import app.Models.Payloads.CreateFilePayload;
+import app.Models.Payloads.EncryptedPayload;
+import app.Models.Payloads.Payload;
+import app.Models.Payloads.ResponsePayload;
+import app.Models.PeerInfo;
+import app.utils.AES;
+import app.utils.CObject;
+
+import javax.crypto.SecretKey;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 
 import static app.constants.Constants.TerminalColors.*;
 
 class ClientHandler implements Runnable {
     private Socket clientSocket;
     private String PEER_ID;
-    private DataInputStream clientReader;
-    private DataOutputStream clientWriter;
+    private ObjectInputStream clientReader;
+    private ObjectOutputStream clientWriter;
+    private SecretKey peerSecretKey;
+    private SecretKey peerLocalSecretKey;
+    private String peerStorageBucketPath;
 
-    public ClientHandler(Socket clientSocket, String PEER_ID) {
+    public ClientHandler(Socket clientSocket, String PEER_ID, SecretKey peerSecretKey, SecretKey peerLocalSecretKey) {
         this.clientSocket = clientSocket;
         this.PEER_ID = PEER_ID;
+        this.peerSecretKey = peerSecretKey;
+        this.peerLocalSecretKey = peerLocalSecretKey;
+        this.peerStorageBucketPath = "./src/main/resources/" + PEER_ID;
     }
 
     @Override
@@ -24,17 +37,33 @@ class ClientHandler implements Runnable {
         try {
             System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + ANSI_RESET);
 
-            clientReader = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-            clientWriter = new DataOutputStream(clientSocket.getOutputStream());
+            clientReader = new ObjectInputStream(clientSocket.getInputStream());
+            clientWriter = new ObjectOutputStream(clientSocket.getOutputStream());
 
-            String clientInput;
-            while ((clientInput = clientReader.readUTF()) != null) {
-                String response = processInput(clientInput);
-                clientWriter.writeUTF(response);
-                clientWriter.flush();
+            Object clientInput;
+            while ((clientInput = clientReader.readObject()) != null) {
+                Payload payload = null;
+                if (clientInput instanceof EncryptedPayload) {
+                    EncryptedPayload encryptedPayload = (EncryptedPayload) clientInput;
+                    byte[] decryptedData = AES.decrypt(peerSecretKey, encryptedPayload.getData());
+                    payload = (Payload) CObject.bytesToObject(decryptedData);
+                }
+
+                if (payload != null) {
+                    ResponsePayload response = processInput(payload);
+                    clientWriter.writeObject(response);
+                    clientWriter.flush();
+                }
             }
         } catch (IOException e) {
             System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            System.out.println(ANSI_RED + "ClassNotFoundException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } finally {
             try {
                 if (clientSocket != null) {
@@ -48,12 +77,34 @@ class ClientHandler implements Runnable {
                 }
             } catch (IOException e) {
                 System.out.println(ANSI_RED + "IOException: Error closing client socket: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
             }
         }
     }
 
-    private String processInput(String input) {
-        System.out.println(input);
-        return PEER_ID + " ACK: " + input;
+    private ResponsePayload processInput(Payload clientPayload) throws Exception {
+        PeerInfo peerInfo = clientPayload.getPeerInfo();
+        String peer_id = peerInfo.getPeer_id();
+        System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
+        System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET);
+
+        ResponsePayload responsePayload = null;
+        String command = clientPayload.getCommand();
+
+        switch (command) {
+            case "mkdir":
+                CreateFilePayload createFilePayload = (CreateFilePayload) clientPayload;
+                byte[] encryptedFileName = AES.encrypt(peerLocalSecretKey, createFilePayload.getFileName().getBytes());
+                File folder = new File(Paths.get(peerStorageBucketPath, encryptedFileName.toString()).toString());
+                folder.mkdir();
+
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(201)
+                    .setMessage("Folder created successfully " + createFilePayload.getFileName())
+                    .build();
+                break;
+        }
+
+        return responsePayload;
     }
 }
