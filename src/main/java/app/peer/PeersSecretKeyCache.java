@@ -1,10 +1,11 @@
 package app.peer;
 
 import javax.crypto.SecretKey;
+import java.util.HashMap;
 import java.util.Map;
 
-public class PeersSecretKeyManager {
-    private static Map<String, SecretKey> peersSecretKeyManager;
+public class PeersSecretKeyCache {
+    private static Map<String, SecretKey> peersSecretKeyManager = new HashMap<>();
 
     public static SecretKey getPeerSecretKey(String peerId) {
         return peersSecretKeyManager.getOrDefault(peerId, null);
