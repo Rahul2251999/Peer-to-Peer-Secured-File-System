@@ -4,19 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add PeerRequester: supports requesting other peers in the network">
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add key update feature, enhance file listings, show menu on invalid command only">
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ChangeDirectoryPayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/UpdateKeyPayload.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FetchKeyPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FetchKeyResponsePayload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Payload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Payload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ListFilesPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ListFilesPayload.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,7 +41,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectId" id="2MvoDoaSS6kWxwOiXWTI5SgIBSM" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -52,7 +54,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "last_opened_file_path": "/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing/src/main/resources/FDS.keys",
+    "last_opened_file_path": "/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing/src/main/java/app/peer",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
@@ -67,8 +69,11 @@
       <recent name="$PROJECT_DIR$/src/main/resources/CA/keys" />
       <recent name="$PROJECT_DIR$/src/main/resources/FDS/keys" />
     </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="app.Models.Payloads" />
+    </key>
   </component>
-  <component name="RunManager" selected="Application.peer 3">
+  <component name="RunManager" selected="Application.peer 2">
     <configuration name="CA" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.CA.CertificateAuthority" />
       <module name="Peer File Sharing" />
@@ -209,7 +214,84 @@
       <option name="project" value="LOCAL" />
       <updated>1681675988039</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="update intelliJ workspace config">
+      <created>1681676137966</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1681676137966</updated>
+    </task>
+    <task id="LOCAL-00013" summary="add new commands">
+      <created>1681676394073</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1681676394074</updated>
+    </task>
+    <task id="LOCAL-00014" summary="add method to convert bytes to SecretKey">
+      <created>1681676433903</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1681676433903</updated>
+    </task>
+    <task id="LOCAL-00015" summary="extract encryption from Payload">
+      <created>1681676520407</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1681676520407</updated>
+    </task>
+    <task id="LOCAL-00016" summary="minor corrections">
+      <created>1681676675020</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1681676675020</updated>
+    </task>
+    <task id="LOCAL-00017" summary="add list files/directories feature">
+      <created>1681756695302</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756695302</updated>
+    </task>
+    <task id="LOCAL-00018" summary="rename PeersSecretKeyCache">
+      <created>1681756789157</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756789157</updated>
+    </task>
+    <task id="LOCAL-00019" summary="init peer/ClientHandler">
+      <created>1681756847599</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756847599</updated>
+    </task>
+    <task id="LOCAL-00020" summary="add new commands: ls">
+      <created>1681756886383</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756886383</updated>
+    </task>
+    <task id="LOCAL-00021" summary="add new Constants for status codes">
+      <created>1681756910413</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756910413</updated>
+    </task>
+    <task id="LOCAL-00022" summary="add getter method to SecretKey">
+      <created>1681756941166</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1681756941167</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -235,40 +317,32 @@
     <MESSAGE value="add PeerSecretKey cache" />
     <MESSAGE value="add RandomUniquePicker" />
     <MESSAGE value="add PeerRequester: supports requesting other peers in the network" />
-    <option name="LAST_COMMIT_MESSAGE" value="add PeerRequester: supports requesting other peers in the network" />
+    <MESSAGE value="update intelliJ workspace config" />
+    <MESSAGE value="add new commands" />
+    <MESSAGE value="add method to convert bytes to SecretKey" />
+    <MESSAGE value="extract encryption from Payload" />
+    <MESSAGE value="minor corrections" />
+    <MESSAGE value="add list files/directories feature" />
+    <MESSAGE value="rename PeersSecretKeyCache" />
+    <MESSAGE value="init peer/ClientHandler" />
+    <MESSAGE value="add new commands: ls" />
+    <MESSAGE value="add new Constants for status codes" />
+    <MESSAGE value="add getter method to SecretKey" />
+    <MESSAGE value="add key update feature, enhance file listings, show menu on invalid command only" />
+    <option name="LAST_COMMIT_MESSAGE" value="add key update feature, enhance file listings, show menu on invalid command only" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>133</line>
-          <option name="timeStamp" value="66" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>143</line>
-          <option name="timeStamp" value="72" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>61</line>
-          <option name="timeStamp" value="77" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java</url>
-          <line>44</line>
-          <option name="timeStamp" value="78" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>56</line>
-          <option name="timeStamp" value="79" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>146</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>145</line>
-          <option name="timeStamp" value="80" />
+          <line>131</line>
+          <option name="timeStamp" value="102" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

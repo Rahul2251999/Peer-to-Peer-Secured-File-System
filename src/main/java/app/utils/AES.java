@@ -33,9 +33,8 @@ public class AES {
 
         byte[] ciphertextWithoutIv = Arrays.copyOfRange(ciphertext, cipher.getBlockSize(), ciphertext.length);
         cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] plaintext = cipher.doFinal(ciphertextWithoutIv);
 
-        return plaintext;
+        return cipher.doFinal(ciphertextWithoutIv);
     }
 
     private static byte[] concatenate(byte[] a, byte[] b) {
@@ -50,6 +49,13 @@ public class AES {
     public static void writeKeyToFile(SecretKey key, String filePath) throws IOException {
         Path path = Paths.get(filePath);
         byte[] encodedKey = key.getEncoded();
+
+        // Create the file if it does not exist
+        if (!Files.exists(path)) {
+            System.out.println("HI");
+            Files.createFile(path);
+        }
+
         Files.write(path, encodedKey);
     }
 

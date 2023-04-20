@@ -2,6 +2,7 @@ package app.FDS;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -155,23 +156,23 @@ class ClientHandler implements Runnable {
                 MongoCursor<Document> cursor = results.iterator();
                 List<String> allLines = new ArrayList<>();
                 while (cursor.hasNext()) {
-                    Map<String, Object> document = new HashMap<>(cursor.next());
-                    Map<String, String> permissions = (Map<String, String>) document.get("permissions");
-                    String owner = (String) document.get("owner");
+                    Map<String, Object> documentMap = new HashMap<>(cursor.next());
+                    Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
+                    String owner = (String) documentMap.get("owner");
 
-                    if (owner.equals(peer_id) || (permissions != null && permissions.getOrDefault(peer_id, null) != null)) {
-                        Date date = ((ObjectId) document.get("_id")).getDate();
+                    if (owner.equals(peer_id) || checkPermissions(documentMap, peer_id, "r") || checkPermissions(documentMap, peer_id, "w")) {
+                        Date date = ((ObjectId) documentMap.get("_id")).getDate();
                         String formattedDate = new SimpleDateFormat("MMM dd HH:mm").format(date);
 
                         StringBuilder sb = new StringBuilder();
 
-                        sb.append((boolean) document.get("isDirectory") ? "d" : "-");
+                        sb.append((boolean) documentMap.get("isDirectory") ? "d" : "-");
                         sb.append(" ");
                         sb.append(owner.equals(peer_id) ? "w" : permissions.get(peer_id));
                         sb.append(" ");
-                        sb.append(String.format("%-" + 20 + "s", document.get("owner")));
+                        sb.append(String.format("%-" + 20 + "s", documentMap.get("owner")));
                         sb.append(String.format("%-" + 15 + "s", formattedDate));
-                        sb.append(document.get("parent") + (String) document.get("name"));
+                        sb.append(Paths.get(documentMap.get("parent") + "/" + documentMap.get("name")).normalize());
                         allLines.add(sb.toString());
                     }
                 }
@@ -180,6 +181,38 @@ class ClientHandler implements Runnable {
                 responsePayload = new ListFilesResponsePayload.Builder()
                     .setLines(allLines)
                     .setStatusCode(200)
+                    .setMessage(message)
+                    .build();
+                break;
+            case "cd":
+                ChangeDirectoryPayload changeDirectoryPayload = (ChangeDirectoryPayload) clientPayload;
+                String path = Paths.get(changeDirectoryPayload.getPwd() + changeDirectoryPayload.getChangeInto()).normalize().toString();
+
+                collection = db.getCollection("file_metadata");
+
+                Document query = new Document("$expr", new Document("$eq", Arrays.asList(new Document("$concat", Arrays.asList("$parent", "$name")), path)));
+                Document document = collection.find(query).first();
+
+                int statusCode;
+                if (document != null) {
+                    Map<String, Object> documentMap = new HashMap<>(document);
+
+                    // check if the peer has read or write permissions over the directory
+                    if (checkPermissions(documentMap, peerInfo.getPeer_id(), "r") ||
+                        checkPermissions(documentMap, peerInfo.getPeer_id(), "w") ||
+                        documentMap.get("owner").equals(peerInfo.getPeer_id())) {
+                        message = "";
+                        statusCode = 200;
+                    } else {
+                        message = String.format("%s: Access denied", path);
+                        statusCode = 401;
+                    }
+                } else {
+                    message = String.format("%s: Not found", path);
+                    statusCode = 404;
+                }
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(statusCode)
                     .setMessage(message)
                     .build();
                 break;
@@ -201,11 +234,17 @@ class ClientHandler implements Runnable {
         // get Collection
         MongoCollection<Document> collection = db.getCollection("file_metadata");
 
-        Document document = collection.find(eq("parent", parent)).first();
-        Map<String, Object> hashMap = new HashMap<>(document);
-        boolean hasPermission = checkPermissions(hashMap, peerInfo.getPeer_id());
+        Document query = new Document("$expr", new Document("$eq", Arrays.asList(new Document("$concat", Arrays.asList("$parent", "$name")), parent)));
+        Document document = collection.find(query).first();
 
-        if ((!(boolean) hashMap.get("isDeleted")) && (parent.equals("/") || hasPermission)) {
+        Map<String, Object> documentMap = new HashMap<>(document);
+        boolean hasPermission = checkPermissions(documentMap, peerInfo.getPeer_id(), "w")
+                || documentMap.get("owner").equals(peerInfo.getPeer_id());
+
+        // the parent where the file is being created should not be deleted
+        // the peer should have permissions to create the file in the parent
+        // or it should be root directory (every peer can create a file/folder in root)
+        if ((!(boolean) documentMap.get("isDeleted")) && (parent.equals("/") || hasPermission)) {
             String[] activePeers = peerDBMap.values()
                 .stream()
                 .filter(PeerDB::isActive)
@@ -259,10 +298,16 @@ class ClientHandler implements Runnable {
         return responsePayload;
     }
 
-    public boolean checkPermissions(Map<String, Object> hashMap, String peerId) {
-        Map<String, String> permissions = (Map<String, String>) hashMap.get("permissions");
+    public boolean checkPermissions(Map<String, Object> documentMap, String peerId, String permissionType) {
+        Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
         String permission = permissions.get(peerId);
 
-        return permission.equals("w");
+        // if no permissions
+        // allow the user
+        if (permission == null) {
+            return true;
+        }
+
+        return permission.equals(permissionType);
     }
 }

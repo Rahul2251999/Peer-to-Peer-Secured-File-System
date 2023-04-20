@@ -16,7 +16,7 @@ import app.utils.RSA;
 import static app.constants.Constants.TerminalColors.*;
 
 public class FileDistributionService {
-    private static int PORT = 8080;
+    private static final int PORT = 8080;
     private static ServerSocket serverSocket = null;
     static Properties properties = new Properties();
 
@@ -64,16 +64,19 @@ public class FileDistributionService {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println(ANSI_BLUE + "Client connected: " + clientSocket + ANSI_RESET);
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, properties);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
             }
         } catch (IOException e) {
             System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (InterruptedException e) {
             System.out.println(ANSI_RED + "InterruptedException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } finally {
             try {
                 if (serverSocket != null) {
@@ -81,6 +84,7 @@ public class FileDistributionService {
                 }
             } catch (IOException e) {
                 System.out.println(ANSI_RED + "IOException: Error closing server socket: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
             }
         }
     }

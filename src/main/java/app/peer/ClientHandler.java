@@ -3,15 +3,19 @@ package app.peer;
 import app.Models.Payloads.CreateFilePayload;
 import app.Models.Payloads.EncryptedPayload;
 import app.Models.Payloads.Payload;
+import app.Models.Payloads.Peer.UpdateKeyPayload;
 import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
 import app.utils.AES;
 import app.utils.CObject;
+import app.utils.RSA;
 
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.Properties;
 
 import static app.constants.Constants.TerminalColors.*;
 
@@ -23,13 +27,15 @@ class ClientHandler implements Runnable {
     private SecretKey peerSecretKey;
     private SecretKey peerLocalSecretKey;
     private String peerStorageBucketPath;
+    private Properties properties;
 
-    public ClientHandler(Socket clientSocket, String PEER_ID, SecretKey peerSecretKey, SecretKey peerLocalSecretKey) {
+    public ClientHandler(Socket clientSocket, String PEER_ID, SecretKey peerSecretKey, SecretKey peerLocalSecretKey, Properties properties) {
         this.clientSocket = clientSocket;
         this.PEER_ID = PEER_ID;
         this.peerSecretKey = peerSecretKey;
         this.peerLocalSecretKey = peerLocalSecretKey;
         this.peerStorageBucketPath = "./src/main/resources/" + PEER_ID;
+        this.properties = properties;
     }
 
     @Override
@@ -90,6 +96,7 @@ class ClientHandler implements Runnable {
 
         ResponsePayload responsePayload = null;
         String command = clientPayload.getCommand();
+        String message;
 
         switch (command) {
             case "mkdir":
@@ -98,9 +105,23 @@ class ClientHandler implements Runnable {
                 File folder = new File(Paths.get(peerStorageBucketPath, encryptedFileName.toString()).toString());
                 folder.mkdir();
 
+                message = String.format("Folder created successfully %s", createFilePayload.getFileName());
                 responsePayload = new ResponsePayload.Builder()
                     .setStatusCode(201)
-                    .setMessage("Folder created successfully " + createFilePayload.getFileName())
+                    .setMessage(message)
+                    .build();
+                break;
+            case "updateKey":
+                UpdateKeyPayload updateKeyPayload = (UpdateKeyPayload) clientPayload;
+                byte[] CAPublicKeyBytes = Base64.getDecoder().decode(properties.getProperty("CA_PBK"));
+                SecretKey secretKey = AES.getSecretKey(RSA.decrypt(updateKeyPayload.getKey(), RSA.getPublicKey(CAPublicKeyBytes)));
+
+                PeersSecretKeyCache.setPeersSecretKey(updateKeyPayload.getPeerInfo().getPeer_id(), secretKey);
+
+                message = String.format("%s ACK: %s key updated!", PEER_ID, updateKeyPayload.getPeerInfo().getPeer_id());
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(200)
+                    .setMessage(message)
                     .build();
                 break;
         }

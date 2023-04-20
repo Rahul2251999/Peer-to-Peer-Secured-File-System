@@ -3,7 +3,6 @@ package app.peer;
 import app.Models.Payloads.EncryptedPayload;
 import app.Models.Payloads.FetchKeyResponsePayload;
 import app.Models.Payloads.Payload;
-import app.Models.Payloads.Peer.CreateFilePayload;
 import app.Models.Payloads.Peer.FetchKeyPayload;
 import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
@@ -24,28 +23,29 @@ import java.util.Properties;
 
 import static app.constants.Constants.TerminalColors.*;
 
-public class PeerRequester extends CreateFilePayload implements Runnable {
-    private PeerInfo peerInfo;
-    private PeerInfo requestingPeerInfo;
+public class PeerRequester implements Runnable {
+    private final PeerInfo peerInfo;
+    private final PeerInfo requestingPeerInfo;
     private SecretKey requestingPeerKey = null;
     private static Socket peerSocket = null;
     Payload payload;
     private Socket CASocket = null;
     Properties properties;
 
-    public PeerRequester(PeerInfo peerInfo, PeerInfo requestingPeerInfo, Payload payload, Socket CASocket, Properties properties) {
+    public PeerRequester(PeerInfo peerInfo, PeerInfo requestingPeerInfo, Payload payload, Socket CASocket, Properties properties) throws IOException {
         this.peerInfo = peerInfo;
         this.requestingPeerInfo = requestingPeerInfo;
         this.payload = payload;
-        this.CASocket = CASocket;
+        this.CASocket = new Socket(properties.getProperty("IP_ADDRESS"), Integer.parseInt(properties.getProperty("CA_PORT")));
         this.properties = properties;
     }
 
     @Override
     public void run() {
-        requestingPeerKey = PeersSecretKeyManager.getPeerSecretKey(requestingPeerInfo.getPeer_id());
-
         try {
+            // get Peer SecretKey from cache
+            requestingPeerKey = PeersSecretKeyCache.getPeerSecretKey(requestingPeerInfo.getPeer_id());
+
             // if key is not present,
             // perform handshake with CA to obtain key
             if (requestingPeerKey == null) {
@@ -68,7 +68,7 @@ public class PeerRequester extends CreateFilePayload implements Runnable {
                     byte[] encryptedKey = responsePayload.getKey();
                     byte[] keyBytes = RSA.decrypt(encryptedKey, RSA.getPublicKey(CAPublicKeyBytes));
                     requestingPeerKey = AES.getSecretKey(keyBytes);
-                    PeersSecretKeyManager.setPeersSecretKey(requestingPeerInfo.getPeer_id(), requestingPeerKey);
+                    PeersSecretKeyCache.setPeersSecretKey(requestingPeerInfo.getPeer_id(), requestingPeerKey);
                 }
             }
 
@@ -94,15 +94,20 @@ public class PeerRequester extends CreateFilePayload implements Runnable {
                 System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "ClassNotFoundException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (InvalidKeySpecException e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "InvalidKeySpecException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "NoSuchAlgorithmException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         }
     }
 }

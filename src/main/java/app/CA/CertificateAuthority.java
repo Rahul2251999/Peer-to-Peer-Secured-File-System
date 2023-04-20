@@ -69,14 +69,16 @@ public class CertificateAuthority {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println(ANSI_BLUE + "Client connected: " + clientSocket + ANSI_RESET);
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, properties);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
             }
         } catch (IOException e) {
             System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (InterruptedException e) {
             System.out.println(ANSI_RED + "InterruptedException: " + e.getMessage() + ANSI_RESET);
+            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } finally {
@@ -86,6 +88,7 @@ public class CertificateAuthority {
                 }
             } catch (IOException e) {
                 System.out.println(ANSI_RED + "IOException: Error closing server socket: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
             }
         }
     }

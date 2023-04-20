@@ -6,24 +6,29 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ListFilesPayload extends Payload implements Serializable {
+public class ChangeDirectoryPayload extends Payload implements Serializable {
     private final String pwd;
+    private final String changeInto;
 
-    public ListFilesPayload(Builder builder) {
+    public ChangeDirectoryPayload(Builder builder) {
         super();
         this.command = builder.command;
         this.peerInfo = builder.peerInfo;
         this.pwd = builder.pwd;
+        this.changeInto = builder.changeInto;
     }
 
     public String getPwd() {
         return pwd;
     }
 
+    public String getChangeInto() { return changeInto; }
+
     public static class Builder {
         private String command;
         private PeerInfo peerInfo;
         private String pwd;
+        private String changeInto;
 
         public Builder setCommand(String command) {
             this.command = command;
@@ -41,8 +46,14 @@ public class ListFilesPayload extends Payload implements Serializable {
             return this;
         }
 
-        public ListFilesPayload build() {
-            return new ListFilesPayload(this);
+        public Builder setChangeInto(String changeInto) {
+            Path path = Paths.get(changeInto).normalize();
+            this.changeInto = path.toString();
+            return this;
+        }
+
+        public ChangeDirectoryPayload build() {
+            return new ChangeDirectoryPayload(this);
         }
     }
 }
