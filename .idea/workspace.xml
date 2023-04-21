@@ -5,21 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add key update feature, enhance file listings, show menu on invalid command only">
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ChangeDirectoryPayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/UpdateKeyPayload.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/FileDistributionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ListFilesPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/ListFilesPayload.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -291,7 +281,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681756941167</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="add key update feature, enhance file listings, show menu on invalid command only">
+      <created>1682007294260</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1682007294260</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -334,15 +331,30 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>146</line>
-          <option name="timeStamp" value="93" />
-        </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>131</line>
+          <line>133</line>
           <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java</url>
+          <line>108</line>
+          <option name="timeStamp" value="105" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
+          <line>101</line>
+          <option name="timeStamp" value="106" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
+          <line>52</line>
+          <option name="timeStamp" value="108" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
+          <line>174</line>
+          <option name="timeStamp" value="109" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

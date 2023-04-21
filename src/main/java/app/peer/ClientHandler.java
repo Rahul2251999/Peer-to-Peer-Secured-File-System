@@ -48,11 +48,14 @@ class ClientHandler implements Runnable {
 
             Object clientInput;
             while ((clientInput = clientReader.readObject()) != null) {
+                PeerInfo peerInfo = null;
                 Payload payload = null;
-                if (clientInput instanceof EncryptedPayload) {
-                    EncryptedPayload encryptedPayload = (EncryptedPayload) clientInput;
+                if (clientInput instanceof EncryptedPayload encryptedPayload) {
+                    peerInfo = encryptedPayload.getPeerInfo();
                     byte[] decryptedData = AES.decrypt(peerSecretKey, encryptedPayload.getData());
                     payload = (Payload) CObject.bytesToObject(decryptedData);
+                } else if (clientInput instanceof Payload) {
+                    payload = (Payload) clientInput;
                 }
 
                 if (payload != null) {
@@ -99,6 +102,7 @@ class ClientHandler implements Runnable {
         String message;
 
         switch (command) {
+            // @deprecated
             case "mkdir":
                 CreateFilePayload createFilePayload = (CreateFilePayload) clientPayload;
                 byte[] encryptedFileName = AES.encrypt(peerLocalSecretKey, createFilePayload.getFileName().getBytes());

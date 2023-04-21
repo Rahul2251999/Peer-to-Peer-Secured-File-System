@@ -100,12 +100,14 @@ public class Menu implements Runnable {
                     AES.writeKeyToFile(peerSecretKey, peerStorageBucketPath + "/keys/key.der");
 
                     payload = new InitPayload.Builder()
+                        .setPeerInfo(peerInfo)
                         .setCommand(Commands.registerKey.name())
                         .setKey(RSA.encrypt(peerSecretKey.getEncoded(), RSA.getPublicKey(CAPublicKeyBytes)))
                         .build();
                     writeToServerAndReadResponse(CAReader, CAWriter, payload);
 
                     payload = new InitPayload.Builder()
+                        .setPeerInfo(peerInfo)
                         .setCommand(Commands.registerKey.name())
                         .setKey(RSA.encrypt(peerSecretKey.getEncoded(), RSA.getPublicKey(FDSPublicKeyBytes)))
                         .build();

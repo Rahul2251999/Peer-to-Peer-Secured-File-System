@@ -120,27 +120,31 @@ public class ClientHandler implements Runnable {
                     .setMessage(response)
                     .build();
 
-                keyBytes = RSA.encrypt(key.getEncoded(), KeyManager.getPublicKey());
+                keyBytes = RSA.encrypt(key.getEncoded(), KeyManager.getPrivateKey());
                 UpdateKeyPayload updateKeyPayload = new UpdateKeyPayload.Builder()
                     .setCommand(Commands.updateKey.name())
                     .setPeerInfo(peerInfo)
                     .setKey(keyBytes)
                     .build();
 
-                for (PeerDB peer: peerDBMap.values()) {
-                    Socket peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), peer.getPort_no());
-                    ObjectOutputStream peerWriter = new ObjectOutputStream(peerSocket.getOutputStream());
-                    ObjectInputStream peerReader = new ObjectInputStream(peerSocket.getInputStream());
+                for (Map.Entry<String, PeerDB> peerDBItem: peerDBMap.entrySet()) {
+                    // check if the peer is active and
+                    // do not send the payload to the peer requesting keygen
+                    if (peerDBItem.getValue().isActive() && !peerDBItem.getKey().equals(peerInfo.getPeer_id())) {
+                        Socket peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), peerDBItem.getValue().getPort_no());
+                        ObjectOutputStream peerWriter = new ObjectOutputStream(peerSocket.getOutputStream());
+                        ObjectInputStream peerReader = new ObjectInputStream(peerSocket.getInputStream());
 
-                    peerWriter.writeObject(updateKeyPayload);
-                    peerWriter.flush();
+                        peerWriter.writeObject(updateKeyPayload);
+                        peerWriter.flush();
 
-                    responsePayload = (ResponsePayload) peerReader.readObject();
+                        responsePayload = (ResponsePayload) peerReader.readObject();
 
-                    if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode())) {
-                        System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
-                    } else {
-                        System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
+                        if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode())) {
+                            System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
+                        } else {
+                            System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
+                        }
                     }
                 }
 
