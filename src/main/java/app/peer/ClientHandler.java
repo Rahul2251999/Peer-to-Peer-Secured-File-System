@@ -134,11 +134,13 @@ class ClientHandler implements Runnable {
             case "touch":
                 UpdateFilePayload updateFilePayload = (UpdateFilePayload) clientPayload;
                 ExtractNameAndExtension extractNameAndExtension = new ExtractNameAndExtension(updateFilePayload.getFileName());
+                extractNameAndExtension.run();
+
                 byte[] encryptedFileNameBytes = AES.encrypt(peerLocalSecretKey, extractNameAndExtension.getFileName().getBytes());
                 byte[] encryptedContent = AES.encrypt(peerLocalSecretKey, updateFilePayload.getFileContents().getBytes());
-                String encryptedAbsoluteFileName = Base64.getEncoder().encodeToString(encryptedFileNameBytes) + extractNameAndExtension.getExtension();
+                String encryptedAbsoluteFileName = Base64.getEncoder().encodeToString(encryptedFileNameBytes) + "." + extractNameAndExtension.getExtension();
 
-                Path path = Paths.get(encryptedAbsoluteFileName);
+                Path path = Paths.get(peerStorageBucketPath, encryptedAbsoluteFileName);
                 Files.write(path, encryptedContent, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 
                 message = String.format("%s: ACK: Write to file %s successful!", peer_id, updateFilePayload.getFileName());

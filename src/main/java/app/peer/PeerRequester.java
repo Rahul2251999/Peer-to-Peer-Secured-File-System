@@ -54,10 +54,10 @@ public class PeerRequester implements Runnable {
                 ObjectInputStream CAReader = new ObjectInputStream(CASocket.getInputStream());
 
                 Payload fetchKeyPayload = new FetchKeyPayload.Builder()
-                        .setPeerInfo(peerInfo)
-                        .setCommand(Commands.fetchKey.name())
-                        .setRequestingPeerId(requestingPeerInfo.getPeer_id())
-                        .build();
+                    .setPeerInfo(peerInfo)
+                    .setCommand(Commands.fetchKey.name())
+                    .setRequestingPeerId(requestingPeerInfo.getPeer_id())
+                    .build();
 
                 CAWriter.writeObject(fetchKeyPayload);
                 CAWriter.flush();

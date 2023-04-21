@@ -12,6 +12,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,6 +24,7 @@ import java.nio.file.*;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 import static app.constants.Constants.TerminalColors.ANSI_RED;
 import static app.constants.Constants.TerminalColors.ANSI_RESET;
@@ -30,11 +33,14 @@ public class TextEditor {
     private File initialFile;
     private Map<String, Integer> toBeReplicatedPeers = null;
     private PeerInfo peerInfo;
+    private boolean skipSave = false;
+    private CountDownLatch closeLatch;
 
     public TextEditor(String fileName, Map<String, Integer> toBeReplicatedPeers, PeerInfo peerInfo) {
         this.initialFile = new File(fileName);
         this.toBeReplicatedPeers = toBeReplicatedPeers;
         this.peerInfo = peerInfo;
+        this.closeLatch = new CountDownLatch(1);
     }
 
     private static final int SAVE_DELAY = 2000; // Save file after 2 seconds of inactivity
@@ -70,6 +76,9 @@ public class TextEditor {
                 }
 
                 private void scheduleSave() {
+                    if (skipSave) {
+                        return;
+                    }
                     if (saveTask != null) {
                         saveTask.cancel();
                     }
@@ -115,7 +124,14 @@ public class TextEditor {
             inputMap.put(right, "right");
             actionMap.put("right", new CursorAction(textArea, "right"));
 
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    super.windowClosed(e);
+                    closeLatch.countDown();
+                }
+            });
             frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
@@ -146,7 +162,9 @@ public class TextEditor {
                 Path changedPath = (Path) event.context();
                 if (changedPath.toFile().getName().equals(path.toFile().getName())) {
                     SwingUtilities.invokeLater(() -> {
+                        skipSave = true;
                         openFile(textArea, initialFile);
+                        skipSave = false;
                     });
                 }
             }
@@ -228,4 +246,9 @@ public class TextEditor {
             JOptionPane.showMessageDialog(null, "An error occurred while saving the file.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    public void waitForClose() throws InterruptedException {
+        closeLatch.await();
+    }
+
 }

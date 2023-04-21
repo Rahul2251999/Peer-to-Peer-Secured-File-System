@@ -127,7 +127,7 @@ public class Menu implements Runnable {
                     }
                     payload = new CreateFilePayload.Builder()
                         .setCommand(Commands.mkdir.name())
-                        .setFileName(fileName)
+                        .setFileName("/" + fileName)
                         .setParent(pwd)
                         .setAccessList(accessList)
                         .setPeerInfo(peerInfo)
@@ -173,11 +173,18 @@ public class Menu implements Runnable {
 
                     CreateFileResponsePayload createFileResponsePayload = (CreateFileResponsePayload) writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
 
-                    if (Constants.HttpStatus.twoHundredClass.contains(createFileResponsePayload.getStatusCode())) {
+                    if (Constants.HttpStatus.twoHundredClass.contains(createFileResponsePayload.getStatusCode()) ||
+                        createFileResponsePayload.getStatusCode() == 409) {
                         Map<String, Integer> toBeReplicatedPeers = createFileResponsePayload.getToBeReplicatedPeers();
 
                         TextEditor textEditor = new TextEditor(peerStorageBucketPath + "/temp.txt", toBeReplicatedPeers, peerInfo);
                         textEditor.start();
+
+                        try {
+                            textEditor.waitForClose();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 } else if (commandName.matches("^ls.*")) {
                     payload = new ListFilesPayload.Builder()
@@ -207,11 +214,11 @@ public class Menu implements Runnable {
 
                     if (!changeInto.equals("..")) {
                         payload = new ChangeDirectoryPayload.Builder()
-                                .setPwd(pwd)
-                                .setChangeInto(changeInto)
-                                .setPeerInfo(peerInfo)
-                                .setCommand(Commands.cd.name())
-                                .build();
+                            .setPwd(pwd)
+                            .setChangeInto(changeInto)
+                            .setPeerInfo(peerInfo)
+                            .setCommand(Commands.cd.name())
+                            .build();
 
                         EncryptedPayload encryptedPayload = new EncryptedPayload();
                         encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
@@ -227,6 +234,10 @@ public class Menu implements Runnable {
                         int lastIndexOfSlash = pwd.lastIndexOf("/");
                         if (lastIndexOfSlash != -1) {
                             pwd = pwd.substring(0, lastIndexOfSlash);
+
+                            if (pwd.equals("")) {
+                                pwd = "/";
+                            }
                         }
                     }
                 } else {

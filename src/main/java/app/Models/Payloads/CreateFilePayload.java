@@ -3,6 +3,8 @@ package app.Models.Payloads;
 import app.Models.PeerInfo;
 
 import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class CreateFilePayload extends Payload implements Serializable {
@@ -52,7 +54,8 @@ public class CreateFilePayload extends Payload implements Serializable {
         }
 
         public Builder setParent(String parent) {
-            this.parent = parent;
+            Path path = Paths.get(parent).normalize();
+            this.parent = path.toString();
             return this;
         }
 

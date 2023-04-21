@@ -175,10 +175,10 @@ class ClientHandler implements Runnable {
                     Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
                     String owner = (String) documentMap.get("owner");
 
-                    if (owner.equals(peer_id)
+                    if ((owner.equals(peer_id)
                         || checkPermissions(documentMap, peer_id, "r")
-                            || checkPermissions(documentMap, peer_id, "w")
-                    || !documentMap.get("name").equals("")) {
+                            || checkPermissions(documentMap, peer_id, "w"))
+                                && !documentMap.get("name").equals("")) {
                         Date date = ((ObjectId) documentMap.get("_id")).getDate();
                         String formattedDate = new SimpleDateFormat("MMM dd HH:mm").format(date);
 
@@ -186,7 +186,7 @@ class ClientHandler implements Runnable {
 
                         sb.append((boolean) documentMap.get("isDirectory") ? "d" : "-");
                         sb.append(" ");
-                        sb.append(owner.equals(peer_id) ? "w" : permissions.get(peer_id));
+                        sb.append(permissions.get(peer_id) != null ? permissions.get(peer_id) : "w");
                         sb.append(" ");
                         sb.append(String.format("%-" + 20 + "s", documentMap.get("owner")));
                         sb.append(String.format("%-" + 15 + "s", formattedDate));
@@ -204,7 +204,7 @@ class ClientHandler implements Runnable {
                 break;
             case "cd":
                 ChangeDirectoryPayload changeDirectoryPayload = (ChangeDirectoryPayload) clientPayload;
-                String path = Paths.get(changeDirectoryPayload.getPwd() + changeDirectoryPayload.getChangeInto()).normalize().toString();
+                String path = Paths.get(changeDirectoryPayload.getPwd() + "/" + changeDirectoryPayload.getChangeInto()).normalize().toString();
 
                 collection = db.getCollection("file_metadata");
 
@@ -217,10 +217,15 @@ class ClientHandler implements Runnable {
 
                     // check if the peer has read or write permissions over the directory
                     if (checkPermissions(documentMap, peerInfo.getPeer_id(), "r") ||
-                        checkPermissions(documentMap, peerInfo.getPeer_id(), "w") ||
-                        documentMap.get("owner").equals(peerInfo.getPeer_id())) {
-                        message = "";
-                        statusCode = 200;
+                            checkPermissions(documentMap, peerInfo.getPeer_id(), "w") ||
+                                documentMap.get("owner").equals(peerInfo.getPeer_id())) {
+                        if ((boolean) document.get("isDirectory")) {
+                            message = "";
+                            statusCode = 200;
+                        } else {
+                            message = String.format("%s: Can't CD into a file", path);
+                            statusCode = 400;
+                        }
                     } else {
                         message = String.format("%s: Access denied", path);
                         statusCode = 401;
@@ -299,10 +304,11 @@ class ClientHandler implements Runnable {
             } catch (MongoWriteException e) {
                 message = "Unknown Exception caused while writing to MongoDB";
                 statusCode = 400;
-                toBeReplicatedPeers = null;
                 if (e.getCode() == 11000) {
-                    message = String.format("`%s` already exists on the network", createFilePayload.getFileName());
+                    message = String.format("`%s` already exists on the network", Paths.get(createFilePayload.getParent() + "/" + createFilePayload.getFileName()).normalize());
                     statusCode = 409;
+                } else {
+                    toBeReplicatedPeers = null;
                 }
             }
         } else {

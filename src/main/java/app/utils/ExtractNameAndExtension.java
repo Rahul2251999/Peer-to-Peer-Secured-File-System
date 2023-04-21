@@ -1,8 +1,11 @@
 package app.utils;
 
 public class ExtractNameAndExtension {
+    // format: apple.txt
     private String absoluteFileName;
+    // format: apple
     private String fileName;
+    // format: txt
     private String extension;
 
     public ExtractNameAndExtension(String fileName) {
