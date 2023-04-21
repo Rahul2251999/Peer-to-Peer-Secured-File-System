@@ -22,7 +22,7 @@ public class Constants {
         public static final String FDSKeys = "src/main/resources/FDS/keys";
     }
 
-    public class ErrorClasses {
+    public class HttpStatus {
         public static final Set<Integer> twoHundredClass = new HashSet<>(Arrays.asList(200, 201));
         public static final Set<Integer> fourHundredClass = new HashSet<>(Arrays.asList(400, 401, 409, 404));
     }

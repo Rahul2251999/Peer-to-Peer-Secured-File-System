@@ -12,6 +12,7 @@ import app.utils.CObject;
 import app.utils.RSA;
 
 import javax.crypto.SecretKey;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,16 +29,16 @@ public class PeerRequester implements Runnable {
     private final PeerInfo requestingPeerInfo;
     private SecretKey requestingPeerKey = null;
     private static Socket peerSocket = null;
-    Payload payload;
+    private Payload payload;
     private Socket CASocket = null;
-    Properties properties;
+    private Properties properties = new Properties();
 
-    public PeerRequester(PeerInfo peerInfo, PeerInfo requestingPeerInfo, Payload payload, Socket CASocket, Properties properties) throws IOException {
+    public PeerRequester(PeerInfo peerInfo, PeerInfo requestingPeerInfo, Payload payload) throws IOException {
         this.peerInfo = peerInfo;
         this.requestingPeerInfo = requestingPeerInfo;
         this.payload = payload;
-        this.CASocket = new Socket(properties.getProperty("IP_ADDRESS"), Integer.parseInt(properties.getProperty("CA_PORT")));
-        this.properties = properties;
+        this.properties.load(new FileInputStream("src/main/resources/config.properties"));
+        this.CASocket = new Socket(properties.getProperty("IP_ADDRESS"), Integer.parseInt(properties.getProperty("CA_PORT")));;
     }
 
     @Override

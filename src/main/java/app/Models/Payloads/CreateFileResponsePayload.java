@@ -1,26 +1,25 @@
 package app.Models.Payloads;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CreateFileResponsePayload extends ResponsePayload implements Serializable {
-    private Map<String, Integer> replicatedPeerPorts = null;
+    private Map<String, Integer> toBeReplicatedPeers = null;
 
     private CreateFileResponsePayload(Builder builder) {
         this.statusCode = builder.statusCode;
         this.message = builder.message;
-        this.replicatedPeerPorts = builder.replicatedPeerPorts;
+        this.toBeReplicatedPeers = builder.toBeReplicatedPeers;
     }
 
-    public Map<String, Integer> getReplicatedPeerPorts() {
-        return replicatedPeerPorts;
+    public Map<String, Integer> getToBeReplicatedPeers() {
+        return toBeReplicatedPeers;
     }
 
     public static class Builder {
         private int statusCode;
         private String message;
-        private Map<String, Integer> replicatedPeerPorts;
+        private Map<String, Integer> toBeReplicatedPeers;
 
         public Builder setStatusCode(int statusCode) {
             this.statusCode = statusCode;
@@ -32,8 +31,8 @@ public class CreateFileResponsePayload extends ResponsePayload implements Serial
             return this;
         }
 
-        public Builder setReplicatedPeerPorts(Map<String, Integer> replicatedPeerPorts) {
-            this.replicatedPeerPorts = replicatedPeerPorts;
+        public Builder setToBeReplicatedPeers(Map<String, Integer> toBeReplicatedPeers) {
+            this.toBeReplicatedPeers = toBeReplicatedPeers;
             return this;
         }
 

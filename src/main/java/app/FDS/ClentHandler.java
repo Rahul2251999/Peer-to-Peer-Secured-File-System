@@ -175,7 +175,10 @@ class ClientHandler implements Runnable {
                     Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
                     String owner = (String) documentMap.get("owner");
 
-                    if (owner.equals(peer_id) || checkPermissions(documentMap, peer_id, "r") || checkPermissions(documentMap, peer_id, "w")) {
+                    if (owner.equals(peer_id)
+                        || checkPermissions(documentMap, peer_id, "r")
+                            || checkPermissions(documentMap, peer_id, "w")
+                    || !documentMap.get("name").equals("")) {
                         Date date = ((ObjectId) documentMap.get("_id")).getDate();
                         String formattedDate = new SimpleDateFormat("MMM dd HH:mm").format(date);
 
@@ -248,7 +251,7 @@ class ClientHandler implements Runnable {
         String message;
         int statusCode;
         String parent = createFilePayload.getParent();
-        Map<String, Integer> replicatedPeerPorts = null;
+        Map<String, Integer> toBeReplicatedPeers = null;
 
         // get Collection
         MongoCollection<Document> collection = db.getCollection("file_metadata");
@@ -258,7 +261,7 @@ class ClientHandler implements Runnable {
 
         Map<String, Object> documentMap = new HashMap<>(document);
         boolean hasPermission = checkPermissions(documentMap, peerInfo.getPeer_id(), "w")
-                || documentMap.get("owner").equals(peerInfo.getPeer_id());
+            || documentMap.get("owner").equals(peerInfo.getPeer_id());
 
         // the parent where the file is being created should not be deleted
         // the peer should have permissions to create the file in the parent
@@ -273,7 +276,7 @@ class ClientHandler implements Runnable {
 
             // In case `RandomUniquePicker.pick` missed it, add owner peer
             uniqueRandomPeers.add(peerInfo.getPeer_id());
-            replicatedPeerPorts = uniqueRandomPeers.stream()
+            toBeReplicatedPeers = uniqueRandomPeers.stream()
                 .filter(peerDBMap::containsKey)
                 .collect(Collectors.toMap(Function.identity(), peer -> peerDBMap.get(peer).getPort_no()));
 
@@ -296,7 +299,7 @@ class ClientHandler implements Runnable {
             } catch (MongoWriteException e) {
                 message = "Unknown Exception caused while writing to MongoDB";
                 statusCode = 400;
-                replicatedPeerPorts = null;
+                toBeReplicatedPeers = null;
                 if (e.getCode() == 11000) {
                     message = String.format("`%s` already exists on the network", createFilePayload.getFileName());
                     statusCode = 409;
@@ -304,14 +307,14 @@ class ClientHandler implements Runnable {
             }
         } else {
             message = String.format("`%s` do not have permissions to create file at `%s`",
-                    peerInfo.getPeer_id(), parent);
+                peerInfo.getPeer_id(), parent);
             statusCode = 401;
         }
 
         responsePayload = new CreateFileResponsePayload.Builder()
             .setStatusCode(statusCode)
             .setMessage(message)
-            .setReplicatedPeerPorts(replicatedPeerPorts)
+            .setToBeReplicatedPeers(toBeReplicatedPeers)
             .build();
 
         return responsePayload;

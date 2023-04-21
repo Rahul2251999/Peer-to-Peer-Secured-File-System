@@ -5,7 +5,7 @@ public enum Commands {
     registerPeer,
     registerKey,
     fetchKey,
-    updateKey,
+    updatePeerKey,
     // file-system actions
     mkdir,
     touch,

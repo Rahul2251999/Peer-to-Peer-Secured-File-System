@@ -116,7 +116,7 @@ public class ClientHandler implements Runnable {
 
                 keyBytes = RSA.encrypt(key.getEncoded(), KeyManager.getPrivateKey());
                 UpdateKeyPayload updateKeyPayload = new UpdateKeyPayload.Builder()
-                    .setCommand(Commands.updateKey.name())
+                    .setCommand(Commands.updatePeerKey.name())
                     .setPeerInfo(peerInfo)
                     .setKey(keyBytes)
                     .build();
@@ -136,7 +136,7 @@ public class ClientHandler implements Runnable {
 
                         responsePayload = (ResponsePayload) peerReader.readObject();
 
-                        if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode())) {
+                        if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode())) {
                             System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
                             keyRegistrationSuccessful.append(peerDBItem1.getKey() + ", ");
                             successfulyKeyRegistrationCount += 1;

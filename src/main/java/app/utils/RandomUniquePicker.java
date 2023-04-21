@@ -23,7 +23,7 @@ public class RandomUniquePicker {
 
         // Select the first n items of the shuffled array
         String[] uniqueItems = Arrays.copyOfRange(items, 0, n);
-        Set<String> set = new HashSet<>(Arrays.asList(String.valueOf(uniqueItems)));
+        Set<String> set = new HashSet<>(Arrays.asList(uniqueItems));
 
         return set;
     }

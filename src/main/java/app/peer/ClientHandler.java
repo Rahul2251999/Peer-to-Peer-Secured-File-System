@@ -3,17 +3,22 @@ package app.peer;
 import app.Models.Payloads.CreateFilePayload;
 import app.Models.Payloads.EncryptedPayload;
 import app.Models.Payloads.Payload;
+import app.Models.Payloads.Peer.UpdateFilePayload;
 import app.Models.Payloads.Peer.UpdateKeyPayload;
 import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
 import app.utils.AES;
 import app.utils.CObject;
+import app.utils.ExtractNameAndExtension;
 import app.utils.RSA;
 
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Base64;
 import java.util.Properties;
 
@@ -103,8 +108,8 @@ class ClientHandler implements Runnable {
             // @deprecated
             case "mkdir":
                 CreateFilePayload createFilePayload = (CreateFilePayload) clientPayload;
-                byte[] encryptedFileName = AES.encrypt(peerLocalSecretKey, createFilePayload.getFileName().getBytes());
-                File folder = new File(Paths.get(peerStorageBucketPath, encryptedFileName.toString()).toString());
+                byte[] encryptedFolderName = AES.encrypt(peerLocalSecretKey, createFilePayload.getFileName().getBytes());
+                File folder = new File(Paths.get(peerStorageBucketPath, encryptedFolderName.toString()).toString());
                 folder.mkdir();
 
                 message = String.format("Folder created successfully %s", createFilePayload.getFileName());
@@ -121,6 +126,22 @@ class ClientHandler implements Runnable {
                 PeersSecretKeyCache.setPeersSecretKey(updateKeyPayload.getPeerInfo().getPeer_id(), secretKey);
 
                 message = String.format("%s ACK: %s key updated!", PEER_ID, updateKeyPayload.getPeerInfo().getPeer_id());
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(200)
+                    .setMessage(message)
+                    .build();
+                break;
+            case "touch":
+                UpdateFilePayload updateFilePayload = (UpdateFilePayload) clientPayload;
+                ExtractNameAndExtension extractNameAndExtension = new ExtractNameAndExtension(updateFilePayload.getFileName());
+                byte[] encryptedFileNameBytes = AES.encrypt(peerLocalSecretKey, extractNameAndExtension.getFileName().getBytes());
+                byte[] encryptedContent = AES.encrypt(peerLocalSecretKey, updateFilePayload.getFileContents().getBytes());
+                String encryptedAbsoluteFileName = Base64.getEncoder().encodeToString(encryptedFileNameBytes) + extractNameAndExtension.getExtension();
+
+                Path path = Paths.get(encryptedAbsoluteFileName);
+                Files.write(path, encryptedContent, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                message = String.format("%s: ACK: Write to file %s successful!", peer_id, updateFilePayload.getFileName());
                 responsePayload = new ResponsePayload.Builder()
                     .setStatusCode(200)
                     .setMessage(message)

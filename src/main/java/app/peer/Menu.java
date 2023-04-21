@@ -3,6 +3,7 @@ package app.peer;
 import app.Models.Payloads.*;
 import app.Models.Payloads.Peer.ListFilesResponsePayload;
 import app.Models.PeerInfo;
+import app.TextEditor;
 import app.constants.Commands;
 import app.constants.Constants;
 import app.utils.AES;
@@ -137,7 +138,7 @@ public class Menu implements Runnable {
                     writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
 
                     // If no errors
-//                    if (Constants.ErrorClasses.twoHundredClass.contains(createFileResponsePayload.getStatusCode())) {
+//                    if (Constants.HttpStatus.twoHundredClass.contains(createFileResponsePayload.getStatusCode())) {
 //                        Map<String, Integer> replicatedPeerPorts = createFileResponsePayload.getReplicatedPeerPorts();
 //
 //                        for (Map.Entry<String, Integer> peer : replicatedPeerPorts.entrySet()) {
@@ -160,16 +161,24 @@ public class Menu implements Runnable {
                         accessList.put(commandArgs[i], commandArgs[i + 1]);
                     }
                     payload = new CreateFilePayload.Builder()
-                            .setCommand(Commands.touch.name())
-                            .setFileName(fileName)
-                            .setParent(pwd)
-                            .setAccessList(accessList)
-                            .setPeerInfo(peerInfo)
-                            .build();
+                        .setCommand(Commands.touch.name())
+                        .setFileName(fileName)
+                        .setParent(pwd)
+                        .setAccessList(accessList)
+                        .setPeerInfo(peerInfo)
+                        .build();
                     EncryptedPayload encryptedPayload = new EncryptedPayload();
                     encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
                     encryptedPayload.setPeerInfo(peerInfo);
-                    writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
+
+                    CreateFileResponsePayload createFileResponsePayload = (CreateFileResponsePayload) writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
+
+                    if (Constants.HttpStatus.twoHundredClass.contains(createFileResponsePayload.getStatusCode())) {
+                        Map<String, Integer> toBeReplicatedPeers = createFileResponsePayload.getToBeReplicatedPeers();
+
+                        TextEditor textEditor = new TextEditor(peerStorageBucketPath + "/temp.txt", toBeReplicatedPeers, peerInfo);
+                        textEditor.start();
+                    }
                 } else if (commandName.matches("^ls.*")) {
                     payload = new ListFilesPayload.Builder()
                         .setCommand(Commands.ls.name())
@@ -181,7 +190,7 @@ public class Menu implements Runnable {
                     encryptedPayload.setPeerInfo(peerInfo);
                     ListFilesResponsePayload listFilesResponsePayload = (ListFilesResponsePayload) writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
 
-                    if (Constants.ErrorClasses.twoHundredClass.contains(listFilesResponsePayload.getStatusCode())) {
+                    if (Constants.HttpStatus.twoHundredClass.contains(listFilesResponsePayload.getStatusCode())) {
                         List<String> allLines = listFilesResponsePayload.getLines();
 
                         for (String line: allLines) {
@@ -195,22 +204,30 @@ public class Menu implements Runnable {
                     }
 
                     String changeInto = command[1];
-                    payload = new ChangeDirectoryPayload.Builder()
-                        .setPwd(pwd)
-                        .setChangeInto(changeInto)
-                        .setPeerInfo(peerInfo)
-                        .setCommand(Commands.cd.name())
-                        .build();
 
-                    EncryptedPayload encryptedPayload = new EncryptedPayload();
-                    encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
-                    encryptedPayload.setPeerInfo(peerInfo);
+                    if (!changeInto.equals("..")) {
+                        payload = new ChangeDirectoryPayload.Builder()
+                                .setPwd(pwd)
+                                .setChangeInto(changeInto)
+                                .setPeerInfo(peerInfo)
+                                .setCommand(Commands.cd.name())
+                                .build();
 
-                    responsePayload = writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
+                        EncryptedPayload encryptedPayload = new EncryptedPayload();
+                        encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
+                        encryptedPayload.setPeerInfo(peerInfo);
 
-                    if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode())) {
-                        pwd += "/" + changeInto;
-                        pwd = Paths.get(pwd).normalize().toString();
+                        responsePayload = writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
+
+                        if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode())) {
+                            pwd += "/" + changeInto;
+                            pwd = Paths.get(pwd).normalize().toString();
+                        }
+                    } else {
+                        int lastIndexOfSlash = pwd.lastIndexOf("/");
+                        if (lastIndexOfSlash != -1) {
+                            pwd = pwd.substring(0, lastIndexOfSlash);
+                        }
                     }
                 } else {
                     System.out.println(ANSI_YELLOW + "Unrecognized Command" + ANSI_RESET);
@@ -244,9 +261,9 @@ public class Menu implements Runnable {
 
         ResponsePayload responsePayload = (ResponsePayload) reader.readObject();
 
-        if (Constants.ErrorClasses.fourHundredClass.contains(responsePayload.getStatusCode())) {
+        if (Constants.HttpStatus.fourHundredClass.contains(responsePayload.getStatusCode())) {
             System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
-        } else if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode()) && !responsePayload.getMessage().equals("")) {
+        } else if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode()) && !responsePayload.getMessage().equals("")) {
             System.out.println(ANSI_GREEN + responsePayload.getMessage() + ANSI_RESET);
         }
 
