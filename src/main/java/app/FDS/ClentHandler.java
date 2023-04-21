@@ -127,6 +127,21 @@ class ClientHandler implements Runnable {
 
                 String response = "Peer registered Successfully";
                 responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(200)
+                    .setMessage(response)
+                    .build();
+                break;
+            case "registerKey":
+                initPayload = (InitPayload) clientPayload;
+                System.out.println(ANSI_BLUE + "Registering key for peer " + peer_id + ANSI_RESET);
+                keyBytes = RSA.decrypt(initPayload.getKey(), KeyManager.getPrivateKey());
+                key = AES.getSecretKey(keyBytes);
+                peerDBItem = peerDBMap.get(peer_id);
+                peerDBItem.setKey(key);
+                peerDBMap.put(peer_id, peerDBItem);
+
+                response = "FDS: ACK: SecretKey register successfully";
+                responsePayload = new ResponsePayload.Builder()
                         .setStatusCode(200)
                         .setMessage(response)
                         .build();
@@ -217,6 +232,10 @@ class ClientHandler implements Runnable {
                     .build();
                 break;
             default:
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(400)
+                    .setMessage("FDS: Command handler not found")
+                    .build();
                 System.out.println(ANSI_YELLOW + "Invalid command issued: " + commandName + ANSI_RESET);
         }
 

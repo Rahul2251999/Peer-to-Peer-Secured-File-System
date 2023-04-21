@@ -48,10 +48,8 @@ class ClientHandler implements Runnable {
 
             Object clientInput;
             while ((clientInput = clientReader.readObject()) != null) {
-                PeerInfo peerInfo = null;
                 Payload payload = null;
                 if (clientInput instanceof EncryptedPayload encryptedPayload) {
-                    peerInfo = encryptedPayload.getPeerInfo();
                     byte[] decryptedData = AES.decrypt(peerSecretKey, encryptedPayload.getData());
                     payload = (Payload) CObject.bytesToObject(decryptedData);
                 } else if (clientInput instanceof Payload) {
@@ -128,6 +126,12 @@ class ClientHandler implements Runnable {
                     .setMessage(message)
                     .build();
                 break;
+            default:
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(400)
+                    .setMessage("Peer: Command handler not found")
+                    .build();
+                System.out.println(ANSI_YELLOW + "Invalid command issued: " + ANSI_RESET);
         }
 
         return responsePayload;

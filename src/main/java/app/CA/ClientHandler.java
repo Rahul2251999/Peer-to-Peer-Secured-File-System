@@ -84,7 +84,7 @@ public class ClientHandler implements Runnable {
         PeerInfo peerInfo = clientPayload.getPeerInfo();
         String peer_id = peerInfo.getPeer_id();
         System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
-        System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET);
+        System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET + "\n");
 
         ResponsePayload responsePayload = null;
 
@@ -96,8 +96,8 @@ public class ClientHandler implements Runnable {
                 byte[] keyBytes = RSA.decrypt(initPayload.getKey(), KeyManager.getPrivateKey());
                 SecretKey key = AES.getSecretKey(keyBytes);
 
-                PeerDB peerDB = new PeerDB(peerInfo, true, key);
-                peerDBMap.put(peer_id, peerDB);
+                PeerDB peerDBItem = new PeerDB(peerInfo, true, key);
+                peerDBMap.put(peer_id, peerDBItem);
 
                 String response = "Peer registered Successfully";
                 responsePayload = new ResponsePayload.Builder()
@@ -110,15 +110,9 @@ public class ClientHandler implements Runnable {
                 System.out.println(ANSI_BLUE + "Registering key for peer " + peer_id + ANSI_RESET);
                 keyBytes = RSA.decrypt(initPayload.getKey(), KeyManager.getPrivateKey());
                 key = AES.getSecretKey(keyBytes);
-                peerDB = peerDBMap.get(peer_id);
-                peerDB.setKey(key);
-                peerDBMap.put(peer_id, peerDB);
-
-                response = "Key Registered Successfully";
-                responsePayload = new ResponsePayload.Builder()
-                    .setStatusCode(200)
-                    .setMessage(response)
-                    .build();
+                peerDBItem = peerDBMap.get(peer_id);
+                peerDBItem.setKey(key);
+                peerDBMap.put(peer_id, peerDBItem);
 
                 keyBytes = RSA.encrypt(key.getEncoded(), KeyManager.getPrivateKey());
                 UpdateKeyPayload updateKeyPayload = new UpdateKeyPayload.Builder()
@@ -127,11 +121,13 @@ public class ClientHandler implements Runnable {
                     .setKey(keyBytes)
                     .build();
 
-                for (Map.Entry<String, PeerDB> peerDBItem: peerDBMap.entrySet()) {
+                int successfulyKeyRegistrationCount = 0;
+                StringBuilder keyRegistrationSuccessful = new StringBuilder();
+                for (Map.Entry<String, PeerDB> peerDBItem1: peerDBMap.entrySet()) {
                     // check if the peer is active and
                     // do not send the payload to the peer requesting keygen
-                    if (peerDBItem.getValue().isActive() && !peerDBItem.getKey().equals(peerInfo.getPeer_id())) {
-                        Socket peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), peerDBItem.getValue().getPort_no());
+                    if (peerDBItem1.getValue().isActive() && !peerDBItem1.getKey().equals(peerInfo.getPeer_id())) {
+                        Socket peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), peerDBItem1.getValue().getPort_no());
                         ObjectOutputStream peerWriter = new ObjectOutputStream(peerSocket.getOutputStream());
                         ObjectInputStream peerReader = new ObjectInputStream(peerSocket.getInputStream());
 
@@ -142,11 +138,20 @@ public class ClientHandler implements Runnable {
 
                         if (Constants.ErrorClasses.twoHundredClass.contains(responsePayload.getStatusCode())) {
                             System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
+                            keyRegistrationSuccessful.append(peerDBItem1.getKey() + ", ");
+                            successfulyKeyRegistrationCount += 1;
                         } else {
                             System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
                         }
+                        System.out.println();
                     }
                 }
+
+                response = successfulyKeyRegistrationCount > 0 ? String.format("CA: ACK: SecretKey registration successfully on %s", keyRegistrationSuccessful.substring(0, keyRegistrationSuccessful.length() - 2)) : String.format("CA: ACK: SecretKey registration failed");
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(200)
+                    .setMessage(response)
+                    .build();
 
                 break;
             case "fetchKey":
@@ -158,11 +163,11 @@ public class ClientHandler implements Runnable {
                 keyBytes = null;
 
                 if (peerDBMap.containsKey(fetchKeyOf)) {
-                    peerDB = peerDBMap.get(fetchKeyOf);
-                    if (peerDB.isActive()) {
+                    peerDBItem = peerDBMap.get(fetchKeyOf);
+                    if (peerDBItem.isActive()) {
                         statusCode = 200;
                         message = "Handshake Successful!";
-                        keyBytes = RSA.encrypt(peerDB.getKey().getEncoded(), KeyManager.getPrivateKey());
+                        keyBytes = RSA.encrypt(peerDBItem.getKey().getEncoded(), KeyManager.getPrivateKey());
                     } else {
                         statusCode = 400;
                         message = "Peer inactive";
@@ -179,6 +184,10 @@ public class ClientHandler implements Runnable {
                     .build();
                 break;
             default:
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(400)
+                    .setMessage("CA: Command handler not found")
+                    .build();
                 System.out.println(ANSI_YELLOW + "Invalid command issued: " + ANSI_RESET);
         }
 
