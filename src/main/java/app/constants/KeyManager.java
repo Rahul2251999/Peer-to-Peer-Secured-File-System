@@ -15,9 +15,9 @@ public class KeyManager {
 
     public KeyManager(String filePath) {
         try {
-            byte[] keyBytes = Files.readAllBytes(Paths.get(filePath + "/private.der"));
+            byte[] keyBytes = Files.readAllBytes(Paths.get(filePath, "private.der"));
             privateKey = RSA.getPrivateKey(keyBytes);
-            keyBytes = Files.readAllBytes(Paths.get(filePath + "/public.der"));
+            keyBytes = Files.readAllBytes(Paths.get(filePath, "public.der"));
             publicKey = RSA.getPublicKey(keyBytes);
         } catch (IOException e) {
             throw new RuntimeException(e);

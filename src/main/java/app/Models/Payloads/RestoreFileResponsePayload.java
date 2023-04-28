@@ -3,30 +3,24 @@ package app.Models.Payloads;
 import java.io.Serializable;
 import java.util.Map;
 
-public class CreateFileResponsePayload extends ResponsePayload implements Serializable {
+public class RestoreFileResponsePayload extends ResponsePayload implements Serializable {
     private Map<String, Integer> toBeReplicatedPeers;
-    private boolean readOnly;
 
-    private CreateFileResponsePayload(Builder builder) {
-        this.statusCode = builder.statusCode;
+    public RestoreFileResponsePayload(Builder builder) {
+        super();
         this.message = builder.message;
+        this.statusCode = builder.statusCode;
         this.toBeReplicatedPeers = builder.toBeReplicatedPeers;
-        this.readOnly = builder.readOnly;
     }
 
     public Map<String, Integer> getToBeReplicatedPeers() {
         return toBeReplicatedPeers;
     }
 
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
     public static class Builder {
         private int statusCode;
         private String message;
         private Map<String, Integer> toBeReplicatedPeers;
-        private boolean readOnly;
 
         public Builder setStatusCode(int statusCode) {
             this.statusCode = statusCode;
@@ -43,13 +37,8 @@ public class CreateFileResponsePayload extends ResponsePayload implements Serial
             return this;
         }
 
-        public Builder setReadOnly(boolean readOnly) {
-            this.readOnly = readOnly;
-            return this;
-        }
-
-        public CreateFileResponsePayload build() {
-            return new CreateFileResponsePayload(this);
+        public RestoreFileResponsePayload build() {
+            return new RestoreFileResponsePayload(this);
         }
     }
 }

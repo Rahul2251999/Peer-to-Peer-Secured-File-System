@@ -21,10 +21,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import static app.constants.Constants.TerminalColors.*;
 
-public class PeerRequester implements Runnable {
+public class PeerRequester implements Callable<ResponsePayload> {
     private final PeerInfo peerInfo;
     private final PeerInfo requestingPeerInfo;
     private SecretKey requestingPeerKey = null;
@@ -42,8 +43,10 @@ public class PeerRequester implements Runnable {
     }
 
     @Override
-    public void run() {
+    public ResponsePayload call() {
+        ResponsePayload responsePayload = null;
         try {
+            System.out.println(ANSI_YELLOW + String.format("Checking for %s key in KeyCache", requestingPeerInfo.getPeer_id()) + ANSI_RESET);
             // get Peer SecretKey from cache
             requestingPeerKey = PeersSecretKeyCache.getPeerSecretKey(requestingPeerInfo.getPeer_id());
 
@@ -59,17 +62,28 @@ public class PeerRequester implements Runnable {
                     .setRequestingPeerId(requestingPeerInfo.getPeer_id())
                     .build();
 
+                System.out.println(ANSI_YELLOW + String.format("Key not found"));
+                System.out.println(String.format("Requesting %s key from Certificate Authority", peerInfo.getPeer_id(), requestingPeerInfo.getPeer_id()) + ANSI_RESET);
+
                 CAWriter.writeObject(fetchKeyPayload);
                 CAWriter.flush();
 
-                FetchKeyResponsePayload responsePayload = (FetchKeyResponsePayload) CAReader.readObject();
+                FetchKeyResponsePayload fetchKeyResponsePayload = (FetchKeyResponsePayload) CAReader.readObject();
 
-                if (responsePayload.getStatusCode() == 200) {
+                if (fetchKeyResponsePayload.getStatusCode() == 200) {
                     byte[] CAPublicKeyBytes = Base64.getDecoder().decode(properties.getProperty("CA_PBK"));
-                    byte[] encryptedKey = responsePayload.getKey();
+                    byte[] encryptedKey = fetchKeyResponsePayload.getKey();
                     byte[] keyBytes = RSA.decrypt(encryptedKey, RSA.getPublicKey(CAPublicKeyBytes));
                     requestingPeerKey = AES.getSecretKey(keyBytes);
                     PeersSecretKeyCache.setPeersSecretKey(requestingPeerInfo.getPeer_id(), requestingPeerKey);
+                    System.out.println(ANSI_YELLOW + fetchKeyResponsePayload.getMessage() + ANSI_RESET);
+                }
+
+                try {
+                    CAWriter.close();
+                } catch (IOException e) {
+                    System.out.println(ANSI_RED + "IOException: Error closing socket: " + e.getMessage() + ANSI_RESET);
+                    e.printStackTrace();
                 }
             }
 
@@ -79,7 +93,7 @@ public class PeerRequester implements Runnable {
             encryptedPayload.setPeerInfo(peerInfo);
 
             peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), requestingPeerInfo.getPort_no());
-            System.out.println(ANSI_BLUE + "Connected to Peer: " + requestingPeerInfo.getPeer_id() + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Connecting to Peer: " + requestingPeerInfo.getPeer_id() + ANSI_RESET);
 
             ObjectOutputStream peerWriter = new ObjectOutputStream(peerSocket.getOutputStream());
             ObjectInputStream peerReader = new ObjectInputStream(peerSocket.getInputStream());
@@ -87,7 +101,7 @@ public class PeerRequester implements Runnable {
             peerWriter.writeObject(encryptedPayload);
             peerWriter.flush();
 
-            ResponsePayload responsePayload = (ResponsePayload) peerReader.readObject();
+            responsePayload = (ResponsePayload) peerReader.readObject();
 
             if (responsePayload.getStatusCode() == 200 || responsePayload.getStatusCode() == 201) {
                 System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
@@ -109,6 +123,20 @@ public class PeerRequester implements Runnable {
         } catch (Exception e) {
             System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
             e.printStackTrace();
+        } finally {
+            try {
+                if (CASocket != null) {
+                    CASocket.close();
+                }
+
+                if (peerSocket != null) {
+                    peerSocket.close();
+                }
+            } catch (IOException e) {
+                System.out.println(ANSI_RED + "IOException: Error closing socket: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
+            }
         }
+        return responsePayload;
     }
 }

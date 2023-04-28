@@ -18,8 +18,9 @@ public class Constants {
     }
 
     public class FilePaths {
-        public static final String CAKeys = "./src/main/resources/CA/keys";
+        public static final String CAKeys = "src/main/resources/CA/keys";
         public static final String FDSKeys = "src/main/resources/FDS/keys";
+        public static final String peerEncryptedFilesPath = "src/main/resources/{peerId}/files";
     }
 
     public class HttpStatus {

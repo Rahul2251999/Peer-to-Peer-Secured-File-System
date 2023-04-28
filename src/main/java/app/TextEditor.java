@@ -2,18 +2,16 @@ package app;
 
 import app.Models.Payloads.Payload;
 import app.Models.Payloads.Peer.UpdateFilePayload;
+import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
 import app.constants.Commands;
 import app.peer.PeerRequester;
+import app.utils.FileOperations;
 
+import javax.crypto.SecretKey;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,91 +22,115 @@ import java.nio.file.*;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 
 import static app.constants.Constants.TerminalColors.ANSI_RED;
 import static app.constants.Constants.TerminalColors.ANSI_RESET;
 
 public class TextEditor {
     private File initialFile;
+    private String absoluteFileName;
     private Map<String, Integer> toBeReplicatedPeers = null;
     private PeerInfo peerInfo;
     private boolean skipSave = false;
     private CountDownLatch closeLatch;
+    private FileWatcher fileWatcher;
+    private String peerEncryptedFilesPath;
+    private SecretKey peerLocalSecretKey;
+    private boolean readOnly;
 
-    public TextEditor(String fileName, Map<String, Integer> toBeReplicatedPeers, PeerInfo peerInfo) {
-        this.initialFile = new File(fileName);
+    public TextEditor(String temporaryFileName, boolean readOnly, String absoluteFileName, Map<String, Integer> toBeReplicatedPeers, PeerInfo peerInfo, String peerEncryptedFilesPath, SecretKey peerLocalSecretKey) {
+        this.initialFile = new File(temporaryFileName);
+        this.absoluteFileName = absoluteFileName;
         this.toBeReplicatedPeers = toBeReplicatedPeers;
         this.peerInfo = peerInfo;
         this.closeLatch = new CountDownLatch(1);
+        this.peerEncryptedFilesPath = peerEncryptedFilesPath;
+        this.peerLocalSecretKey = peerLocalSecretKey;
+        this.readOnly = readOnly;
     }
 
-    private static final int SAVE_DELAY = 2000; // Save file after 2 seconds of inactivity
+    private static final int SAVE_DELAY = 300; // Save file after .3 seconds of inactivity
 
     public void start() {
+        JTextArea textArea = new JTextArea(30, 80);
+
+        textArea.setEditable(!this.readOnly);
+
+        fileWatcher = new FileWatcher(textArea, initialFile.toPath());
+        fileWatcher.execute();
+
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame(String.format("%s - %s", this.peerInfo.getPeer_id(), initialFile.getName()));
-            JTextArea textArea = new JTextArea(30, 80);
+            JFrame frame = new JFrame(String.format("%s - %s %s", this.peerInfo.getPeer_id(), absoluteFileName, (readOnly ? "(read-only)": "")));
             JScrollPane scrollPane = new JScrollPane(textArea);
 
             if (initialFile.exists() && initialFile.isFile()) {
                 openFile(textArea, initialFile);
             }
 
-            Timer saveTimer = new Timer();
+            if (!readOnly) {
+                Timer saveTimer = new Timer();
 
-            textArea.getDocument().addDocumentListener(new DocumentListener() {
-                TimerTask saveTask;
+                textArea.addKeyListener(new KeyAdapter() {
+                    TimerTask saveTask;
 
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    scheduleSave();
-                }
-
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    scheduleSave();
-                }
-
-                @Override
-                public void changedUpdate(DocumentEvent e) {
-                    scheduleSave();
-                }
-
-                private void scheduleSave() {
-                    if (skipSave) {
-                        return;
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+                        scheduleSave();
                     }
-                    if (saveTask != null) {
-                        saveTask.cancel();
-                    }
-                    saveTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            saveToFile(textArea, initialFile);
-                            Payload createFilePayload = new UpdateFilePayload.Builder()
-                                .setCommand(Commands.touch.name())
-                                .setPeerInfo(peerInfo)
-                                .setFileName(initialFile.getName())
-                                .setFileContents(textArea.getText())
-                                .build();
 
-                            for (Map.Entry<String, Integer> peer : toBeReplicatedPeers.entrySet()) {
-                                PeerInfo requestingPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
-                                try {
-                                    PeerRequester peerRequester = new PeerRequester(peerInfo, requestingPeerInfo, createFilePayload);
-                                    Thread thread = new Thread(peerRequester);
-                                    thread.start();
-                                } catch (IOException e) {
-                                    System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
-                                    e.printStackTrace();
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        scheduleSave();
+                    }
+
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        scheduleSave();
+                    }
+
+                    private void scheduleSave() {
+                        if (skipSave) {
+                            return;
+                        }
+                        if (saveTask != null) {
+                            saveTask.cancel();
+                        }
+                        saveTask = new TimerTask() {
+                            @Override
+                            public void run() {
+                                saveToFile(textArea, initialFile);
+                                UpdateFilePayload updateFilePayload = new UpdateFilePayload.Builder()
+                                        .setCommand(Commands.touch.name())
+                                        .setPeerInfo(peerInfo)
+                                        .setFileName(absoluteFileName)
+                                        .setFileContents(textArea.getText())
+                                        .build();
+
+                                for (Map.Entry<String, Integer> peer : toBeReplicatedPeers.entrySet()) {
+                                    PeerInfo requestingPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
+                                    try {
+                                        if (requestingPeerInfo.getPeer_id().equals(peerInfo.getPeer_id())) {
+                                            FileOperations.touch(updateFilePayload, peerInfo.getPeer_id(), peerLocalSecretKey, peerEncryptedFilesPath);
+                                        } else {
+                                            ExecutorService executor = Executors.newSingleThreadExecutor();
+                                            Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, requestingPeerInfo, updateFilePayload));
+                                            executor.shutdown();
+                                        }
+                                    } catch (IOException e) {
+                                        System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+                                        e.printStackTrace();
+                                    } catch (Exception e) {
+                                        System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
-                        }
-                    };
-                    saveTimer.schedule(saveTask, SAVE_DELAY);
-                }
-            });
+                        };
+                        saveTimer.schedule(saveTask, SAVE_DELAY);
+                    }
+                });
+            }
 
             // Add custom key bindings
             InputMap inputMap = textArea.getInputMap(JComponent.WHEN_FOCUSED);
@@ -129,6 +151,9 @@ public class TextEditor {
                 @Override
                 public void windowClosed(WindowEvent e) {
                     super.windowClosed(e);
+                    if (initialFile != null && initialFile.exists()) {
+                        initialFile.delete();
+                    }
                     closeLatch.countDown();
                 }
             });
@@ -137,69 +162,7 @@ public class TextEditor {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
 
-            // Monitor file changes
-            new Thread(() -> {
-                try {
-                    watchFileChanges(textArea, initialFile.toPath());
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
         });
-    }
-
-    private void watchFileChanges(JTextArea textArea, Path path) throws IOException, InterruptedException {
-        WatchService watchService = FileSystems.getDefault().newWatchService();
-        path.toAbsolutePath().getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-
-        while (true) {
-            WatchKey key = watchService.take();
-            for (WatchEvent<?> event : key.pollEvents()) {
-                if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
-                    continue;
-                }
-
-                Path changedPath = (Path) event.context();
-                if (changedPath.toFile().getName().equals(path.toFile().getName())) {
-                    SwingUtilities.invokeLater(() -> {
-                        skipSave = true;
-                        openFile(textArea, initialFile);
-                        skipSave = false;
-                    });
-                }
-            }
-
-            boolean valid = key.reset();
-            if (!valid) {
-                break;
-            }
-        }
-    }
-
-    private static String findChanges(String oldContent, String newContent) {
-        int minLength = Math.min(oldContent.length(), newContent.length());
-        int startIndex = -1;
-        int endIndex = -1;
-
-        for (int i = 0; i < minLength; i++) {
-            if (oldContent.charAt(i) != newContent.charAt(i)) {
-                startIndex = i;
-                break;
-            }
-        }
-
-        for (int i = 0; i < minLength; i++) {
-            if (oldContent.charAt(oldContent.length() - 1 - i) != newContent.charAt(newContent.length() - 1 - i)) {
-                endIndex = newContent.length() - i;
-                break;
-            }
-        }
-
-        if (startIndex == -1 || endIndex == -1) {
-            return "";
-        }
-
-        return newContent.substring(startIndex, endIndex);
     }
 
     static class CursorAction extends AbstractAction {
@@ -232,11 +195,13 @@ public class TextEditor {
     }
 
     private static void openFile(JTextArea textArea, File file) {
+        int caretPosition = textArea.getCaretPosition();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             textArea.read(reader, null);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "An error occurred while opening the file.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        textArea.setCaretPosition(Math.min(caretPosition, textArea.getDocument().getLength()));
     }
 
     private void saveToFile(JTextArea textArea, File file) {
@@ -249,6 +214,58 @@ public class TextEditor {
 
     public void waitForClose() throws InterruptedException {
         closeLatch.await();
+        fileWatcher.cancel(false);
     }
 
+    class FileWatcher extends SwingWorker<Void, Void> {
+        private JTextArea textArea;
+        private Path path;
+
+        public FileWatcher(JTextArea textArea, Path path) {
+            this.textArea = textArea;
+            this.path = path;
+        }
+
+        @Override
+        protected Void doInBackground() throws Exception {
+            watchFileChanges();
+            return null;
+        }
+
+        private void watchFileChanges() throws IOException {
+            WatchService watchService = FileSystems.getDefault().newWatchService();
+            path.toAbsolutePath().getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+
+            while (!isCancelled()) {
+                WatchKey key;
+                try {
+                    key = watchService.poll(100, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+                if (key != null) {
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+                            continue;
+                        }
+
+                        Path changedPath = (Path) event.context();
+                        if (changedPath.toFile().getName().equals(path.toFile().getName())) {
+                            SwingUtilities.invokeLater(() -> {
+                                skipSave = true;
+                                openFile(textArea, path.toFile());
+                                skipSave = false;
+                            });
+                        }
+                    }
+
+                    boolean valid = key.reset();
+                    if (!valid) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }

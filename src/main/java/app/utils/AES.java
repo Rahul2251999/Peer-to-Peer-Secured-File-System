@@ -52,7 +52,6 @@ public class AES {
 
         // Create the file if it does not exist
         if (!Files.exists(path)) {
-            System.out.println("HI");
             Files.createFile(path);
         }
 

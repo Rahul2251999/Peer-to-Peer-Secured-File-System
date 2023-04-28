@@ -6,9 +6,13 @@ public enum Commands {
     registerKey,
     fetchKey,
     updatePeerKey,
+
     // file-system actions
     mkdir,
     touch,
     ls,
-    cd
+    cd,
+    read,
+    rm,
+    restore
 }

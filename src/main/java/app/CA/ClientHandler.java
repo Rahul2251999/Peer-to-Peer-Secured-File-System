@@ -41,8 +41,8 @@ public class ClientHandler implements Runnable {
         try {
             System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + "\n" + ANSI_RESET);
 
-            clientReader = new ObjectInputStream(clientSocket.getInputStream());
             clientWriter = new ObjectOutputStream(clientSocket.getOutputStream());
+            clientReader = new ObjectInputStream(clientSocket.getInputStream());
 
             Object clientInput;
             while ((clientInput = clientReader.readObject()) != null) {
@@ -65,12 +65,10 @@ public class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
-            PeerDB peerDBItem = peerDBMap.get(this.peerInfo.getPeer_id());
-            peerDBItem.setActive(false);
-            peerDBMap.put(this.peerInfo.getPeer_id(), peerDBItem);
-
-            e.printStackTrace();
+            if (e.getMessage() != null) {
+                System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
+            }
         } catch (ClassNotFoundException e) {
             System.out.println(ANSI_RED + "ClassNotFoundException: " + e.getMessage() + ANSI_RESET);
             e.printStackTrace();
@@ -99,10 +97,10 @@ public class ClientHandler implements Runnable {
                 PeerDB peerDBItem = new PeerDB(peerInfo, true, key);
                 peerDBMap.put(peer_id, peerDBItem);
 
-                String response = "Peer registered Successfully";
+                String message = String.format("CA: ACK: %s keys registered successfully", peer_id);
                 responsePayload = new ResponsePayload.Builder()
                     .setStatusCode(200)
-                    .setMessage(response)
+                    .setMessage(message)
                     .build();
                 break;
             case "registerKey":
@@ -147,10 +145,10 @@ public class ClientHandler implements Runnable {
                     }
                 }
 
-                response = successfulyKeyRegistrationCount > 0 ? String.format("CA: ACK: SecretKey registration successfully on %s", keyRegistrationSuccessful.substring(0, keyRegistrationSuccessful.length() - 2)) : String.format("CA: ACK: SecretKey registration failed");
+                message = successfulyKeyRegistrationCount > 0 ? String.format("CA: ACK: SecretKey registration successfully on %s", keyRegistrationSuccessful.substring(0, keyRegistrationSuccessful.length() - 2)) : String.format("CA: ACK: SecretKey registration failed");
                 responsePayload = new ResponsePayload.Builder()
                     .setStatusCode(200)
-                    .setMessage(response)
+                    .setMessage(message)
                     .build();
 
                 break;
@@ -159,22 +157,19 @@ public class ClientHandler implements Runnable {
                 String fetchKeyOf = fetchKeyPayload.getRequestingPeerId();
                 System.out.println(ANSI_BLUE + "Fetching Key for peer " + fetchKeyOf + ANSI_RESET);
                 int statusCode;
-                String message;
                 keyBytes = null;
 
                 if (peerDBMap.containsKey(fetchKeyOf)) {
                     peerDBItem = peerDBMap.get(fetchKeyOf);
+                    statusCode = 200;
+                    message = "CA: ACK: Handshake Successful!";
+                    keyBytes = RSA.encrypt(peerDBItem.getKey().getEncoded(), KeyManager.getPrivateKey());
                     if (peerDBItem.isActive()) {
-                        statusCode = 200;
-                        message = "Handshake Successful!";
-                        keyBytes = RSA.encrypt(peerDBItem.getKey().getEncoded(), KeyManager.getPrivateKey());
-                    } else {
-                        statusCode = 400;
-                        message = "Peer inactive";
+                        System.out.println(ANSI_RED + String.format("%s inactive. Sharing the key anyway", fetchKeyOf) + ANSI_RESET);
                     }
                 } else {
                     statusCode = 404;
-                    message = "Peer not found";
+                    message = "CA: Peer not found";
                 }
 
                 responsePayload = new FetchKeyResponsePayload.Builder()

@@ -1,22 +1,32 @@
 package app.peer;
 
+import app.FileWatcher;
 import app.Models.Payloads.*;
+import app.Models.Payloads.DeleteFileResponsePayload;
 import app.Models.Payloads.Peer.ListFilesResponsePayload;
+import app.Models.Payloads.Peer.ReadFilePayload;
+import app.Models.Payloads.Peer.ReadFileResponsePayload;
+import app.Models.Payloads.Peer.UpdateFilePayload;
 import app.Models.PeerInfo;
 import app.TextEditor;
 import app.constants.Commands;
 import app.constants.Constants;
 import app.utils.AES;
 import app.utils.CObject;
+import app.utils.FileOperations;
 import app.utils.RSA;
 
 import javax.crypto.*;
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static app.constants.Constants.TerminalColors.*;
 
@@ -25,11 +35,13 @@ public class Menu implements Runnable {
     private static Socket CASocket = null;
     private PeerInfo peerInfo;
     private SecretKey peerSecretKey;
+    private SecretKey peerLocalSecretKey;
     private Properties properties;
 
-    public Menu(PeerInfo peerInfo, SecretKey peerSecretKey, Properties properties) {
+    public Menu(PeerInfo peerInfo, SecretKey peerSecretKey, SecretKey peerLocalSecretKey, Properties properties) {
         this.peerInfo = peerInfo;
         this.peerSecretKey = peerSecretKey;
+        this.peerLocalSecretKey = peerLocalSecretKey;
         this.properties = properties;
     }
 
@@ -40,6 +52,8 @@ public class Menu implements Runnable {
         System.out.println("touch --fileName --accessList");
         System.out.println("chmod --[directoryName|fileName] --updatedAccessList");
         System.out.println("cd --directoryName");
+        System.out.println("rm --fileName");
+        System.out.println("restore --fileName");
         System.out.println("ls");
         System.out.println("//////////////////////////////////" + ANSI_RESET);
     }
@@ -59,6 +73,7 @@ public class Menu implements Runnable {
             ObjectInputStream CAReader = new ObjectInputStream(CASocket.getInputStream());
 
             String peerStorageBucketPath = "./src/main/resources/" + peerInfo.getPeer_id();
+            String peerEncryptedFilesPath = Constants.FilePaths.peerEncryptedFilesPath.replace("{peerId}", peerInfo.getPeer_id());
 
             byte[] FDSPublicKeyBytes = Base64.getDecoder().decode(properties.getProperty("FDS_PBK"));
 
@@ -136,18 +151,6 @@ public class Menu implements Runnable {
                     encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
                     encryptedPayload.setPeerInfo(peerInfo);
                     writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
-
-                    // If no errors
-//                    if (Constants.HttpStatus.twoHundredClass.contains(createFileResponsePayload.getStatusCode())) {
-//                        Map<String, Integer> replicatedPeerPorts = createFileResponsePayload.getReplicatedPeerPorts();
-//
-//                        for (Map.Entry<String, Integer> peer : replicatedPeerPorts.entrySet()) {
-//                            PeerInfo requestingPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
-//                            PeerRequester peerRequester = new PeerRequester(peerInfo, requestingPeerInfo, payload, CASocket, properties);
-//                            Thread thread = new Thread(peerRequester);
-//                            thread.start();
-//                        }
-//                    }
                 } else if (commandName.matches("^touch.*")) {
                     if (command[1] == null) {
                         System.out.println(ANSI_RED + "Invalid command-line arguments" + ANSI_RESET);
@@ -177,12 +180,57 @@ public class Menu implements Runnable {
                         createFileResponsePayload.getStatusCode() == 409) {
                         Map<String, Integer> toBeReplicatedPeers = createFileResponsePayload.getToBeReplicatedPeers();
 
-                        TextEditor textEditor = new TextEditor(peerStorageBucketPath + "/temp.txt", toBeReplicatedPeers, peerInfo);
+                        String absoluteFileName = Paths.get(((CreateFilePayload) payload).getParent(), ((CreateFilePayload) payload).getFileName()).toString();
+                        String tempFilePath = Paths.get(peerStorageBucketPath, "temp.txt").toString();
+
+                        Optional<String> encryptedFileName = FileOperations.getEncryptedFileNameIfPresentInStorageBucket(peerEncryptedFilesPath, absoluteFileName, peerLocalSecretKey);
+                        String encryptedFileNamePath = null;
+
+                        // if the file is present locally add event listener
+                        if (encryptedFileName.isPresent()) {
+                            encryptedFileNamePath = Paths.get(peerStorageBucketPath, "files", encryptedFileName.get()).toString();
+                            // this listens to file changes and updates
+                            // temp.txt file used by TextEditor class
+                            FileWatcher fileWatcher = new FileWatcher(Paths.get(encryptedFileNamePath), Paths.get(tempFilePath), peerLocalSecretKey);
+                            Thread thread = new Thread(fileWatcher);
+                            thread.start();
+                        }
+
+                        // File already exists in the network
+                        if (createFileResponsePayload.getStatusCode() == 409) {
+                            // check if it is replicated in the current peer,
+                            // else get it from some other peer
+                            if (toBeReplicatedPeers.containsKey(peerInfo.getPeer_id())) {
+                                if (encryptedFileName.isPresent() && encryptedFileNamePath != null) {
+                                    FileOperations.cloneEncryptedDataToPlainTextFile(encryptedFileNamePath, tempFilePath, peerLocalSecretKey);
+                                }
+                            } else {
+                                List<String> keys = new ArrayList<>(toBeReplicatedPeers.keySet());
+                                String randomPeerId = keys.get(new Random().nextInt(keys.size()));
+                                int randomPeerPort = toBeReplicatedPeers.get(randomPeerId);
+
+                                payload = new ReadFilePayload.Builder()
+                                    .setCommand(Commands.read.name())
+                                    .setPeerInfo(peerInfo)
+                                    .setFileName(absoluteFileName)
+                                    .build();
+
+                                ExecutorService executor = Executors.newSingleThreadExecutor();
+                                Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, new PeerInfo(randomPeerId, randomPeerPort), payload));
+                                ReadFileResponsePayload readFileResponsePayload = (ReadFileResponsePayload) future.get();
+                                String fileContent = readFileResponsePayload.readFileContent();
+                                FileOperations.writeDataToPlainTextFile(fileContent, tempFilePath);
+                                executor.shutdown();
+                            }
+                        }
+
+                        TextEditor textEditor = new TextEditor(tempFilePath, createFileResponsePayload.isReadOnly(), absoluteFileName, toBeReplicatedPeers, peerInfo, peerEncryptedFilesPath, peerLocalSecretKey);
                         textEditor.start();
 
                         try {
                             textEditor.waitForClose();
                         } catch (InterruptedException e) {
+                            System.out.println(ANSI_RED + "InterruptedException: " + e.getMessage() + ANSI_RESET);
                             e.printStackTrace();
                         }
                     }
@@ -238,6 +286,74 @@ public class Menu implements Runnable {
                             if (pwd.equals("")) {
                                 pwd = "/";
                             }
+                        }
+                    }
+                } else if (userInput.matches("^rm .*")) {
+                    String[] commandArgs = command[1].split(" ");
+                    String fileName = commandArgs[0];
+                    payload = new DeleteFilePayload.Builder()
+                        .setCommand(Commands.rm.name())
+                        .setPeerInfo(peerInfo)
+                        .setParent(pwd)
+                        .setFileName(fileName)
+                        .build();
+
+                    EncryptedPayload encryptedPayload = new EncryptedPayload();
+                    encryptedPayload.setData(AES.encrypt(peerSecretKey, CObject.objectToBytes(payload)));
+                    encryptedPayload.setPeerInfo(peerInfo);
+
+                    responsePayload = writeToServerAndReadResponse(FDSReader, FDSWriter, encryptedPayload);
+                    DeleteFileResponsePayload deleteFileResponsePayload = (DeleteFileResponsePayload) responsePayload;
+
+                    if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode())) {
+                        Map<String, Integer> toBeDeletedPeers = deleteFileResponsePayload.getToBeDeletedPeers();
+
+                        for(Map.Entry<String, Integer> peer: toBeDeletedPeers.entrySet()) {
+                            PeerInfo toBeDeletedPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
+
+                            ExecutorService executor = Executors.newSingleThreadExecutor();
+                            Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, toBeDeletedPeerInfo, payload));
+                            executor.shutdown();
+                        }
+                    }
+                } else if (commandName.matches("^restore.*")) {
+                    String[] commandArgs = command[1].split(" ");
+                    String fileName = commandArgs[0];
+                    payload = new RestoreFilePayload.Builder()
+                        .setCommand(Commands.restore.name())
+                        .setPeerInfo(peerInfo)
+                        .setParent(pwd)
+                        .setFileName(fileName)
+                        .build();
+
+                    responsePayload = writeToServerAndReadResponse(FDSReader, FDSWriter, payload);
+                    RestoreFileResponsePayload  restoreFileResponsePayload = (RestoreFileResponsePayload) responsePayload;
+
+                    if (Constants.HttpStatus.twoHundredClass.contains(restoreFileResponsePayload.getStatusCode())) {
+                        Map<String, Integer> toBeReplicatedPeers = restoreFileResponsePayload.getToBeReplicatedPeers();
+
+                        String absoluteFileName = Paths.get(((RestoreFilePayload) payload).getParent(), ((RestoreFilePayload) payload).getFileName()).toString();
+                        Optional<String> encryptedFileName = FileOperations.getEncryptedFileNameIfPresentInStorageBucket(peerEncryptedFilesPath, absoluteFileName, peerLocalSecretKey);
+
+                        if (encryptedFileName.isPresent()) {
+                            String absoluteEncryptedFileName = Paths.get(peerEncryptedFilesPath, encryptedFileName.get()).toString();
+                            String fileContents = FileOperations.getPlainTextFromEncryptedFile(absoluteEncryptedFileName, peerLocalSecretKey);
+                            UpdateFilePayload updateFilePayload = new UpdateFilePayload.Builder()
+                                .setCommand(Commands.restore.name())
+                                .setPeerInfo(peerInfo)
+                                .setFileName(absoluteFileName)
+                                .setFileContents(fileContents)
+                                .build();
+
+                            for (Map.Entry<String, Integer> peer : toBeReplicatedPeers.entrySet()) {
+                                PeerInfo toBeReplicatedPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
+
+                                ExecutorService executor = Executors.newSingleThreadExecutor();
+                                Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, toBeReplicatedPeerInfo, updateFilePayload));
+                                executor.shutdown();
+                            }
+                        } else {
+                            System.out.println(ANSI_RED + "REPLICATION_ERROR: File not found" + ANSI_RESET);
                         }
                     }
                 } else {

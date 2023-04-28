@@ -1,25 +1,24 @@
 package app.peer;
 
-import app.Models.Payloads.CreateFilePayload;
-import app.Models.Payloads.EncryptedPayload;
-import app.Models.Payloads.Payload;
+import app.Models.Payloads.*;
+import app.Models.Payloads.Peer.ReadFilePayload;
 import app.Models.Payloads.Peer.UpdateFilePayload;
 import app.Models.Payloads.Peer.UpdateKeyPayload;
-import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
-import app.utils.AES;
-import app.utils.CObject;
-import app.utils.ExtractNameAndExtension;
-import app.utils.RSA;
+import app.constants.Constants;
+import app.utils.*;
 
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.Properties;
 
 import static app.constants.Constants.TerminalColors.*;
@@ -31,7 +30,7 @@ class ClientHandler implements Runnable {
     private ObjectOutputStream clientWriter;
     private SecretKey peerSecretKey;
     private SecretKey peerLocalSecretKey;
-    private String peerStorageBucketPath;
+    private String peerEncryptedFilesPath;
     private Properties properties;
 
     public ClientHandler(Socket clientSocket, String PEER_ID, SecretKey peerSecretKey, SecretKey peerLocalSecretKey, Properties properties) {
@@ -39,7 +38,7 @@ class ClientHandler implements Runnable {
         this.PEER_ID = PEER_ID;
         this.peerSecretKey = peerSecretKey;
         this.peerLocalSecretKey = peerLocalSecretKey;
-        this.peerStorageBucketPath = "./src/main/resources/" + PEER_ID;
+        this.peerEncryptedFilesPath = Constants.FilePaths.peerEncryptedFilesPath.replace("{peerId}", PEER_ID);
         this.properties = properties;
     }
 
@@ -48,8 +47,8 @@ class ClientHandler implements Runnable {
         try {
             System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + ANSI_RESET);
 
-            clientReader = new ObjectInputStream(clientSocket.getInputStream());
             clientWriter = new ObjectOutputStream(clientSocket.getOutputStream());
+            clientReader = new ObjectInputStream(clientSocket.getInputStream());
 
             Object clientInput;
             while ((clientInput = clientReader.readObject()) != null) {
@@ -68,8 +67,10 @@ class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
-            e.printStackTrace();
+            if (e.getMessage() != null) {
+                System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
+            }
         } catch (ClassNotFoundException e) {
             System.out.println(ANSI_RED + "ClassNotFoundException: " + e.getMessage() + ANSI_RESET);
             e.printStackTrace();
@@ -109,7 +110,7 @@ class ClientHandler implements Runnable {
             case "mkdir":
                 CreateFilePayload createFilePayload = (CreateFilePayload) clientPayload;
                 byte[] encryptedFolderName = AES.encrypt(peerLocalSecretKey, createFilePayload.getFileName().getBytes());
-                File folder = new File(Paths.get(peerStorageBucketPath, encryptedFolderName.toString()).toString());
+                File folder = new File(Paths.get(peerEncryptedFilesPath, encryptedFolderName.toString()).toString());
                 folder.mkdir();
 
                 message = String.format("Folder created successfully %s", createFilePayload.getFileName());
@@ -131,23 +132,22 @@ class ClientHandler implements Runnable {
                     .setMessage(message)
                     .build();
                 break;
+            case "restore":
             case "touch":
                 UpdateFilePayload updateFilePayload = (UpdateFilePayload) clientPayload;
-                ExtractNameAndExtension extractNameAndExtension = new ExtractNameAndExtension(updateFilePayload.getFileName());
-                extractNameAndExtension.run();
 
-                byte[] encryptedFileNameBytes = AES.encrypt(peerLocalSecretKey, extractNameAndExtension.getFileName().getBytes());
-                byte[] encryptedContent = AES.encrypt(peerLocalSecretKey, updateFilePayload.getFileContents().getBytes());
-                String encryptedAbsoluteFileName = Base64.getEncoder().encodeToString(encryptedFileNameBytes) + "." + extractNameAndExtension.getExtension();
+                responsePayload = FileOperations.touch(updateFilePayload, PEER_ID, peerLocalSecretKey, peerEncryptedFilesPath);
+                break;
+            case "read":
+                ReadFilePayload readFilePayload = (ReadFilePayload) clientPayload;
 
-                Path path = Paths.get(peerStorageBucketPath, encryptedAbsoluteFileName);
-                Files.write(path, encryptedContent, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+                responsePayload = FileOperations.read(readFilePayload, peerLocalSecretKey, peerEncryptedFilesPath);
+                break;
+            case "rm":
+                DeleteFilePayload deleteFilePayload = (DeleteFilePayload) clientPayload;
+                String absoluteFileName = Paths.get(deleteFilePayload.getParent(), deleteFilePayload.getFileName()).normalize().toString();
 
-                message = String.format("%s: ACK: Write to file %s successful!", peer_id, updateFilePayload.getFileName());
-                responsePayload = new ResponsePayload.Builder()
-                    .setStatusCode(200)
-                    .setMessage(message)
-                    .build();
+                responsePayload = FileOperations.delete(absoluteFileName, PEER_ID, peerLocalSecretKey, peerEncryptedFilesPath);
                 break;
             default:
                 responsePayload = new ResponsePayload.Builder()

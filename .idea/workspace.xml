@@ -5,14 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add support for writing to files (WIP)">
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/FileWatcher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/DeleteFilePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/DeleteFileResponsePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/ReadFilePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/ReadFileResponsePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/RestoreFilePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/RestoreFileResponsePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFilePayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFilePayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFileResponsePayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFileResponsePayload.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/KeyManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/KeyManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/ExtractNameAndExtension.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/ExtractNameAndExtension.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +65,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
+    "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
   }
 }]]></component>
@@ -312,7 +327,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682059859429</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="add support for writing to files (WIP)">
+      <created>1682104256443</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1682104256443</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -358,70 +380,69 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>134</line>
-          <option name="timeStamp" value="102" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java</url>
-          <line>108</line>
-          <option name="timeStamp" value="105" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
-          <line>56</line>
-          <option name="timeStamp" value="108" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>190</line>
-          <option name="timeStamp" value="109" />
+          <line>145</line>
+          <option name="timeStamp" value="186" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>264</line>
-          <option name="timeStamp" value="113" />
+          <line>268</line>
+          <option name="timeStamp" value="187" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
+          <line>146</line>
+          <option name="timeStamp" value="192" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java</url>
+          <line>155</line>
+          <option name="timeStamp" value="199" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java</url>
+          <line>28</line>
+          <option name="timeStamp" value="200" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>214</line>
-          <option name="timeStamp" value="114" />
+          <line>339</line>
+          <option name="timeStamp" value="201" />
         </line-breakpoint>
         <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
+          <line>338</line>
+          <option name="timeStamp" value="202" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
+          <line>348</line>
+          <option name="timeStamp" value="204" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>208</line>
-          <option name="timeStamp" value="115" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>177</line>
-          <option name="timeStamp" value="118" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
-          <line>135</line>
-          <option name="timeStamp" value="121" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java</url>
-          <line>64</line>
-          <option name="timeStamp" value="122" />
+          <line>516</line>
+          <option name="timeStamp" value="218" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
-          <line>140</line>
-          <option name="timeStamp" value="126" />
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>231</line>
+          <option name="timeStamp" value="219" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/TextEditor.java</url>
-          <line>96</line>
-          <option name="timeStamp" value="127" />
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>229</line>
+          <option name="timeStamp" value="220" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java</url>
-          <line>47</line>
-          <option name="timeStamp" value="128" />
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>157</line>
+          <option name="timeStamp" value="221" />
         </line-breakpoint>
+        <breakpoint type="java-exception">
+          <properties class="java.io.EOFException" package="java.io" />
+          <option name="timeStamp" value="175" />
+        </breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
