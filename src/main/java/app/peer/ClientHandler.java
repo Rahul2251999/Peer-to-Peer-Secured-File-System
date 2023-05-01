@@ -5,21 +5,18 @@ import app.Models.Payloads.Peer.ReadFilePayload;
 import app.Models.Payloads.Peer.UpdateFilePayload;
 import app.Models.Payloads.Peer.UpdateKeyPayload;
 import app.Models.PeerInfo;
+import app.constants.Commands;
 import app.constants.Constants;
 import app.utils.*;
 
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static app.constants.Constants.TerminalColors.*;
 
@@ -98,11 +95,12 @@ class ClientHandler implements Runnable {
     private ResponsePayload processInput(Payload clientPayload) throws Exception {
         PeerInfo peerInfo = clientPayload.getPeerInfo();
         String peer_id = peerInfo.getPeer_id();
+        String command = clientPayload.getCommand();
+
         System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
-        System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET);
+        System.out.println("Executing: " + command + ANSI_RESET);
 
         ResponsePayload responsePayload = null;
-        String command = clientPayload.getCommand();
         String message;
 
         switch (command) {
@@ -149,10 +147,62 @@ class ClientHandler implements Runnable {
 
                 responsePayload = FileOperations.delete(absoluteFileName, PEER_ID, peerLocalSecretKey, peerEncryptedFilesPath);
                 break;
+            case "fileListing":
+                FileListingPayload fileListingPayload = (FileListingPayload) clientPayload;
+                Set<String> filesThatShouldExists = fileListingPayload.getFiles();
+                Set<String> filesFound = FileOperations.getPlainTextPaths(peerEncryptedFilesPath, peerLocalSecretKey);
+
+                Set<String> difference = new HashSet<>(filesThatShouldExists);
+                difference.removeAll(filesFound);
+                int statusCode;
+
+                if (difference.size() > 0) {
+                    statusCode = 400;
+                } else {
+                    statusCode = 200;
+                }
+
+                responsePayload = new FileListingResponsePayload.Builder()
+                    .setStatusCode(statusCode)
+                    .setUnTraceableFiles(difference)
+                    .build();
+                break;
+            case "fileReplicate":
+                FileReplicateRequestPayload fileReplicateRequestPayload = (FileReplicateRequestPayload) clientPayload;
+                PeerInfo toBeReplicatedPeerInfo = fileReplicateRequestPayload.getToBeReplicatedPeer();
+                String plainTextFileName = fileReplicateRequestPayload.getFileName();
+                Optional<String> encryptedFileName = FileOperations.getEncryptedFileNameIfPresentInStorageBucket(peerEncryptedFilesPath, plainTextFileName, peerLocalSecretKey);
+
+                if (encryptedFileName.isPresent()) {
+                    String absoluteEncryptedFileName = Paths.get(peerEncryptedFilesPath, encryptedFileName.get()).toString();
+                    String fileContents = FileOperations.getPlainTextFromEncryptedFile(absoluteEncryptedFileName, peerLocalSecretKey);
+                    updateFilePayload = new UpdateFilePayload.Builder()
+                        .setCommand(Commands.touch.name())
+                        // TODO: update value of port_no later
+                        .setPeerInfo(new PeerInfo(PEER_ID, -1))
+                        .setFileName(plainTextFileName)
+                        .setFileContents(fileContents)
+                        .build();
+
+                    ExecutorService executor = Executors.newSingleThreadExecutor();
+                    Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, toBeReplicatedPeerInfo, updateFilePayload));
+                    executor.shutdown();
+                    statusCode = 200;
+                    message = String.format("%s: `%s` replicated successfully", PEER_ID, plainTextFileName);
+                } else {
+                    statusCode = 400;
+                    message = String.format("%s: `%s` replication failed. File was not found at %s", PEER_ID, plainTextFileName, peer_id);
+                }
+
+                responsePayload = new ResponsePayload.Builder()
+                    .setStatusCode(statusCode)
+                    .setMessage(message)
+                    .build();
+                break;
             default:
                 responsePayload = new ResponsePayload.Builder()
                     .setStatusCode(400)
-                    .setMessage("Peer: Command handler not found")
+                    .setMessage(String.format("%s: Command handler not found for %s", PEER_ID, command))
                     .build();
                 System.out.println(ANSI_YELLOW + "Invalid command issued: " + ANSI_RESET);
         }
