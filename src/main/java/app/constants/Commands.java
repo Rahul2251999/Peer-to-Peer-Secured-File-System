@@ -10,9 +10,12 @@ public enum Commands {
     // file-system actions
     mkdir,
     touch,
+    chmod,
     ls,
     cd,
     read,
     rm,
-    restore
+    restore,
+    fileListing,
+    fileReplicate
 }
