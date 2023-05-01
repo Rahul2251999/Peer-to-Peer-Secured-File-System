@@ -16,7 +16,6 @@ import app.utils.RSA;
 import static app.constants.Constants.TerminalColors.*;
 
 public class FileDistributionService {
-    private static final int PORT = 8080;
     private static ServerSocket serverSocket = null;
     static Properties properties = new Properties();
 
@@ -55,10 +54,14 @@ public class FileDistributionService {
             new MongoConnectionManager(properties.getProperty("CONNECTION_STRING"), properties.getProperty("DATABASE_NAME"));
             new KeyManager(Constants.FilePaths.FDSKeys);
 
-            serverSocket = new ServerSocket(PORT);
-            System.out.println(ANSI_BLUE + "Trying to start File Distribution Server on " + PORT + ANSI_RESET);
+            serverSocket = new ServerSocket(Integer.parseInt(properties.getProperty("FDS_PORT")));
+            System.out.println(ANSI_BLUE + "Trying to start File Distribution Server on " + properties.getProperty("FDS_PORT") + ANSI_RESET);
             TimeUnit.SECONDS.sleep(1);
             System.out.println(ANSI_BLUE + "Server started...\n" + ANSI_RESET);
+
+            MaliciousActivityDetector maliciousActivityDetector = new MaliciousActivityDetector(properties);
+            Thread maliciousActivityDetectorThread = new Thread(maliciousActivityDetector);
+            maliciousActivityDetectorThread.start();
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
