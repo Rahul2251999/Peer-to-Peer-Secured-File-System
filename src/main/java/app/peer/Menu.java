@@ -11,14 +11,12 @@ import app.Models.PeerInfo;
 import app.TextEditor;
 import app.constants.Commands;
 import app.constants.Constants;
-import app.utils.AES;
-import app.utils.CObject;
-import app.utils.FileOperations;
-import app.utils.RSA;
+import app.utils.*;
 
 import javax.crypto.*;
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
@@ -95,7 +93,7 @@ public class Menu implements Runnable {
             writeToServerAndReadResponse(CAReader, CAWriter, payload);
 
             ResponsePayload responsePayload;
-            String userInput = null;
+            String userInput;
             String pwd = "/";
 
             while (true) {
@@ -165,7 +163,7 @@ public class Menu implements Runnable {
                     }
                     payload = new CreateFilePayload.Builder()
                         .setCommand(Commands.touch.name())
-                        .setFileName(fileName)
+                        .setFileName("/" + fileName)
                         .setParent(pwd)
                         .setAccessList(accessList)
                         .setPeerInfo(peerInfo)
@@ -187,19 +185,33 @@ public class Menu implements Runnable {
                         String encryptedFileNamePath = null;
 
                         // if the file is present locally add event listener
+                        // else create a new file and add event listener
                         if (encryptedFileName.isPresent()) {
-                            encryptedFileNamePath = Paths.get(peerStorageBucketPath, "files", encryptedFileName.get()).toString();
-                            // this listens to file changes and updates
-                            // temp.txt file used by TextEditor class
-                            FileWatcher fileWatcher = new FileWatcher(Paths.get(encryptedFileNamePath), Paths.get(tempFilePath), peerLocalSecretKey);
-                            Thread thread = new Thread(fileWatcher);
-                            thread.start();
+                            encryptedFileNamePath = Paths.get(peerEncryptedFilesPath, encryptedFileName.get()).toString();
+                        } else {
+                            ExtractNameAndExtension extractNameAndExtension = new ExtractNameAndExtension(absoluteFileName);
+                            extractNameAndExtension.run();
+
+                            byte[] encryptedFileNameBytes = AES.encrypt(peerLocalSecretKey, extractNameAndExtension.getFileName().getBytes());
+                            String encryptedAbsoluteFileName = Base64.getUrlEncoder().encodeToString(encryptedFileNameBytes) + "." + extractNameAndExtension.getExtension();
+
+                            Path encryptedFilePath = Path.of(peerEncryptedFilesPath, encryptedAbsoluteFileName);
+                            Files.createFile(encryptedFilePath);
+
+                            encryptedFileNamePath = encryptedFilePath.toString();
                         }
+
+                        // this listens to file changes and updates
+                        // the temp.txt file used by TextEditor class as a buffer file
+                        FileWatcher fileWatcher = new FileWatcher(Paths.get(encryptedFileNamePath), Paths.get(tempFilePath), peerLocalSecretKey);
+                        Thread thread = new Thread(fileWatcher);
+                        thread.start();
 
                         // File already exists in the network
                         if (createFileResponsePayload.getStatusCode() == 409) {
                             // check if it is replicated in the current peer,
                             // else get it from some other peer
+                            // and add the data to temp.txt buffer file
                             if (toBeReplicatedPeers.containsKey(peerInfo.getPeer_id())) {
                                 if (encryptedFileName.isPresent() && encryptedFileNamePath != null) {
                                     FileOperations.cloneEncryptedDataToPlainTextFile(encryptedFileNamePath, tempFilePath, peerLocalSecretKey);
@@ -234,6 +246,22 @@ public class Menu implements Runnable {
                             e.printStackTrace();
                         }
                     }
+                } else if (commandName.matches("^chmod.*")) {
+                    String[] commandArgs = command[1].split(" ");
+                    String fileName = commandArgs[0];
+                    Map<String, String> accessList = new HashMap<>();
+                    for (int i=1; i<commandArgs.length - 1; i+=2) {
+                        accessList.put(commandArgs[i], commandArgs[i + 1]);
+                    }
+                    payload = new UpdatePermissionsPayload.Builder()
+                        .setCommand(Commands.chmod.name())
+                        .setPeerInfo(peerInfo)
+                        .setAccessList(accessList)
+                        .setParent(pwd)
+                        .setFileName(fileName)
+                        .build();
+
+                    writeToServerAndReadResponse(FDSReader, FDSWriter, payload);
                 } else if (commandName.matches("^ls.*")) {
                     payload = new ListFilesPayload.Builder()
                         .setCommand(Commands.ls.name())
