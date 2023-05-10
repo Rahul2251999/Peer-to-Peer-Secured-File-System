@@ -21,7 +21,6 @@ import static app.constants.Constants.TerminalColors.*;
 import static app.constants.Constants.TerminalColors.ANSI_RED;
 
 public class CertificateAuthority {
-    private static int PORT = 9000;
     private static ServerSocket serverSocket = null;
     static Properties properties = new Properties();
 
@@ -60,8 +59,8 @@ public class CertificateAuthority {
             new MongoConnectionManager(properties.getProperty("CONNECTION_STRING"), properties.getProperty("DATABASE_NAME"));
             new KeyManager(Constants.FilePaths.CAKeys);
 
-            serverSocket = new ServerSocket(PORT);
-            System.out.println(ANSI_BLUE + "Trying to start Certificate Authority on " + PORT + ANSI_RESET);
+            serverSocket = new ServerSocket(Integer.parseInt(properties.getProperty("CA_PORT")));
+            System.out.println(ANSI_BLUE + "Trying to start Certificate Authority on " + properties.getProperty("CA_PORT") + ANSI_RESET);
             TimeUnit.SECONDS.sleep(1);
             System.out.println(ANSI_BLUE + "Server started...\n" + ANSI_RESET);
 

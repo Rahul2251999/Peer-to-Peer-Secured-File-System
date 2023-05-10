@@ -4,29 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add support for writing to files (WIP)">
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/FileWatcher.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/DeleteFilePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/DeleteFileResponsePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/ReadFilePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/Peer/ReadFileResponsePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/RestoreFilePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/RestoreFileResponsePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" afterDir="false" />
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add features: DeleteFile, ReadFile, RestoreFile">
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileListingPayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileListingResponsePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileReplicateRequestPayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/UpdatePermissionsPayload.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFileResponsePayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/CreateFileResponsePayload.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Commands.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/Constants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/constants/KeyManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/constants/KeyManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Menu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/Peer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/PeerRequester.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/AES.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,6 +33,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -56,19 +48,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "last_opened_file_path": "/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing/src/main/java/app/peer",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/lokesh/Documents/MS/PCS - CMSC 626/Peer File Sharing/src/main/java/app/peer&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.repository.indices&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/resources/FDS.keys" />
@@ -81,7 +73,7 @@
       <recent name="app.Models.Payloads" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.peer 2">
+  <component name="RunManager" selected="Application.peer 3">
     <configuration name="CA" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.CA.CertificateAuthority" />
       <module name="Peer File Sharing" />
@@ -122,18 +114,18 @@
     <configuration name="peer 3" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.peer.Peer" />
       <module name="Peer File Sharing" />
-      <option name="PROGRAM_PARAMETERS" value="CS5328 8003" />
+      <option name="PROGRAM_PARAMETERS" value="CS5328 8009" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <list>
       <item itemvalue="Application.CA" />
+      <item itemvalue="Application.FDS" />
+      <item itemvalue="Application.TextEditor" />
       <item itemvalue="Application.peer 1" />
       <item itemvalue="Application.peer 2" />
       <item itemvalue="Application.peer 3" />
-      <item itemvalue="Application.FDS" />
-      <item itemvalue="Application.TextEditor" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -334,7 +326,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682104256443</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="add features: DeleteFile, ReadFile, RestoreFile">
+      <created>1682652641860</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1682652641860</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -349,7 +348,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="refactor add Objects for i/o" />
     <MESSAGE value="add init functionality" />
     <MESSAGE value="add db" />
     <MESSAGE value="remove MongoDB for peerinfo, add asymmetric encryption to encrypt a symmetric key, rename commands, add KeyManager, add more Payloads" />
@@ -374,70 +372,26 @@
     <MESSAGE value="fix key exchange issue" />
     <MESSAGE value="improve logs" />
     <MESSAGE value="add support for writing to files (WIP)" />
-    <option name="LAST_COMMIT_MESSAGE" value="add support for writing to files (WIP)" />
+    <MESSAGE value="add features: DeleteFile, ReadFile, RestoreFile" />
+    <option name="LAST_COMMIT_MESSAGE" value="add features: DeleteFile, ReadFile, RestoreFile" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
-          <line>145</line>
-          <option name="timeStamp" value="186" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>268</line>
-          <option name="timeStamp" value="187" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java</url>
-          <line>146</line>
-          <option name="timeStamp" value="192" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java</url>
-          <line>155</line>
-          <option name="timeStamp" value="199" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java</url>
-          <line>28</line>
-          <option name="timeStamp" value="200" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>339</line>
-          <option name="timeStamp" value="201" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>338</line>
-          <option name="timeStamp" value="202" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/peer/Menu.java</url>
-          <line>348</line>
-          <option name="timeStamp" value="204" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>516</line>
-          <option name="timeStamp" value="218" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>231</line>
-          <option name="timeStamp" value="219" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>229</line>
-          <option name="timeStamp" value="220" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>157</line>
+          <line>165</line>
           <option name="timeStamp" value="221" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>509</line>
+          <option name="timeStamp" value="237" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>415</line>
+          <option name="timeStamp" value="241" />
         </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.io.EOFException" package="java.io" />

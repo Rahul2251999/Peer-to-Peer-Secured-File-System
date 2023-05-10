@@ -1,6 +1,5 @@
 package app;
 
-import app.Models.Payloads.Payload;
 import app.Models.Payloads.Peer.UpdateFilePayload;
 import app.Models.Payloads.ResponsePayload;
 import app.Models.PeerInfo;
@@ -99,32 +98,32 @@ public class TextEditor {
                         saveTask = new TimerTask() {
                             @Override
                             public void run() {
-                                saveToFile(textArea, initialFile);
-                                UpdateFilePayload updateFilePayload = new UpdateFilePayload.Builder()
-                                        .setCommand(Commands.touch.name())
-                                        .setPeerInfo(peerInfo)
-                                        .setFileName(absoluteFileName)
-                                        .setFileContents(textArea.getText())
-                                        .build();
+                            saveToFile(textArea, initialFile);
+                            UpdateFilePayload updateFilePayload = new UpdateFilePayload.Builder()
+                                .setCommand(Commands.touch.name())
+                                .setPeerInfo(peerInfo)
+                                .setFileName(absoluteFileName)
+                                .setFileContents(textArea.getText())
+                                .build();
 
-                                for (Map.Entry<String, Integer> peer : toBeReplicatedPeers.entrySet()) {
-                                    PeerInfo requestingPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
-                                    try {
-                                        if (requestingPeerInfo.getPeer_id().equals(peerInfo.getPeer_id())) {
-                                            FileOperations.touch(updateFilePayload, peerInfo.getPeer_id(), peerLocalSecretKey, peerEncryptedFilesPath);
-                                        } else {
-                                            ExecutorService executor = Executors.newSingleThreadExecutor();
-                                            Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, requestingPeerInfo, updateFilePayload));
-                                            executor.shutdown();
-                                        }
-                                    } catch (IOException e) {
-                                        System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
-                                        e.printStackTrace();
-                                    } catch (Exception e) {
-                                        System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
-                                        e.printStackTrace();
+                            for (Map.Entry<String, Integer> peer : toBeReplicatedPeers.entrySet()) {
+                                PeerInfo requestingPeerInfo = new PeerInfo(peer.getKey(), peer.getValue());
+                                try {
+                                    if (requestingPeerInfo.getPeer_id().equals(peerInfo.getPeer_id())) {
+                                        FileOperations.touch(updateFilePayload, peerInfo.getPeer_id(), peerLocalSecretKey, peerEncryptedFilesPath);
+                                    } else {
+                                        ExecutorService executor = Executors.newSingleThreadExecutor();
+                                        Future<ResponsePayload> future = executor.submit(new PeerRequester(peerInfo, requestingPeerInfo, updateFilePayload));
+                                        executor.shutdown();
                                     }
+                                } catch (IOException e) {
+                                    System.out.println(ANSI_RED + "IOException: " + e.getMessage() + ANSI_RESET);
+                                    e.printStackTrace();
+                                } catch (Exception e) {
+                                    System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+                                    e.printStackTrace();
                                 }
+                            }
                             }
                         };
                         saveTimer.schedule(saveTask, SAVE_DELAY);

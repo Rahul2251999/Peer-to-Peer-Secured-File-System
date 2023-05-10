@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import app.Models.Payloads.DeleteFileResponsePayload;
 import app.Models.Payloads.Peer.ListFilesResponsePayload;
+import app.constants.Constants;
 import app.utils.RandomUniquePicker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,7 +21,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import static com.mongodb.client.model.Filters.eq;
@@ -120,7 +120,7 @@ class ClientHandler implements Runnable {
         System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
         System.out.println("Executing: " + clientPayload.getCommand() + ANSI_RESET);
 
-        ResponsePayload responsePayload = null;
+        ResponsePayload responsePayload;
         MongoDatabase db = MongoConnectionManager.getDatabase();
 
         String commandName = clientPayload.getCommand();
@@ -132,6 +132,14 @@ class ClientHandler implements Runnable {
 
                 PeerDB peerDBItem = new PeerDB(peerInfo, true, key);
                 peerDBMap.put(peer_id, peerDBItem);
+
+                String peerDBFile = Paths.get(Constants.FilePaths.FDSStorageBucket, "peerDBMap.dat").toString();
+                // dump data to .dat file
+                try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(peerDBFile))) {
+                    out.writeObject(peerDBMap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 String response = String.format("FDS: ACK: %s registered successfully", peer_id);
                 responsePayload = new ResponsePayload.Builder()
@@ -168,9 +176,10 @@ class ClientHandler implements Runnable {
                 break;
             case "ls":
                 ListFilesPayload listFilesPayload = (ListFilesPayload) clientPayload;
+                String parent = listFilesPayload.getPwd().equals("/") ? "": listFilesPayload.getPwd();
 
                 // check for starts with
-                Pattern pattern = Pattern.compile("^" + listFilesPayload.getPwd() + ".*");
+                Pattern pattern = Pattern.compile("^" + parent + ".*");
 
                 // get Collection
                 MongoCollection<Document> collection = db.getCollection("file_metadata");
@@ -181,16 +190,17 @@ class ClientHandler implements Runnable {
                 while (cursor.hasNext()) {
                     Map<String, Object> documentMap = new HashMap<>(cursor.next());
                     Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
-                    String permission = permissions.get(peer_id);
                     String owner = (String) documentMap.get("owner");
                     boolean isDeleted = (boolean) documentMap.get("isDeleted");
 
                     if ((owner.equals(peer_id)
-                        || permission == null
+                        || permissions.size() == 0
                             || checkPermissions(permissions, peer_id, "r")
                                 || checkPermissions(permissions, peer_id, "w"))
                                     && !documentMap.get("name").equals("")) {
-                        if (!owner.equals(peer_id) && isDeleted) {
+
+                        // do not show deleted files to non-owner peers
+                        if (isDeleted && !owner.equals(peer_id)) {
                             continue;
                         }
                         Date date = ((ObjectId) documentMap.get("_id")).getDate();
@@ -235,7 +245,7 @@ class ClientHandler implements Runnable {
                     Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
 
                     // check if the peer has read or write permissions over the directory
-                    if (permissions == null
+                    if (permissions.size() == 0
                         || checkPermissions(permissions, peer_id, "r")
                             || checkPermissions(permissions, peer_id, "w")
                                 || documentMap.get("owner").equals(peer_id)) {
@@ -380,9 +390,9 @@ class ClientHandler implements Runnable {
                     .build();
                 break;
             case "chmod":
-                createFilePayload = (CreateFilePayload) clientPayload;
+                UpdatePermissionsPayload updatePermissionsPayload = (UpdatePermissionsPayload) clientPayload;
 
-                absoluteFilePath = Paths.get(createFilePayload.getParent(), createFilePayload.getFileName()).normalize().toString();
+                absoluteFilePath = Paths.get(updatePermissionsPayload.getParent(), updatePermissionsPayload.getFileName()).normalize().toString();
 
                 collection = db.getCollection("file_metadata");
 
@@ -398,10 +408,12 @@ class ClientHandler implements Runnable {
                     String owner = (String) documentMap.get("owner");
 
                     if (owner.equals(peer_id)) {
+                        Map<String, String> existingPermissions = (Map<String, String>) documentMap.get("permissions");
+                        Map<String, String> newPermissions = new HashMap<>(existingPermissions);
 
-                        Document update = new Document("$set", new Document()
-                            .append("", "")
-                        );
+                        newPermissions.putAll(updatePermissionsPayload.getAccessList());
+
+                        Document update = new Document("$set", new Document("permissions", newPermissions));
 
                         UpdateResult result = collection.updateOne(filters, update);
 
@@ -438,7 +450,7 @@ class ClientHandler implements Runnable {
 
         String message;
         int statusCode;
-        String parent = createFilePayload.getParent();
+        String parent = createFilePayload.getParent().equals("/") ? "" : createFilePayload.getParent();
         Map<String, Integer> toBeReplicatedPeers = null;
         boolean isReadOnly = true;
 
@@ -453,6 +465,7 @@ class ClientHandler implements Runnable {
             Map<String, String> permissions = (Map<String, String>) documentMap.get("permissions");
 
             boolean hasPermission = checkPermissions(permissions, peer_id, "w")
+                || permissions.size() == 0
                 || documentMap.get("owner").equals(peer_id);
 
             // the parent where the file is being created should not be deleted
@@ -479,7 +492,7 @@ class ClientHandler implements Runnable {
                 document = new Document();
                 document.append("name", createFilePayload.getFileName());
                 document.append("owner", peer_id);
-                document.append("parent", createFilePayload.getParent().equals("/") ? "" : createFilePayload.getParent());
+                document.append("parent", parent);
                 document.append("permissions", createFilePayload.getAccessList());
                 document.append("isDirectory", isDirectory);
                 document.append("isDeleted", false);
@@ -498,7 +511,7 @@ class ClientHandler implements Runnable {
                     statusCode = 400;
                     if (e.getCode() == 11000) {
                         List<Bson> filters = new ArrayList<>();
-                        filters.add(Filters.eq("parent", createFilePayload.getParent()));
+                        filters.add(Filters.eq("parent", parent));
                         filters.add(Filters.eq("name", createFilePayload.getFileName()));
 
                         // Construct the query
@@ -506,21 +519,35 @@ class ClientHandler implements Runnable {
 
                         document = collection.find(BsonQuery).first();
 
-                        ArrayList<String> replicatedPeerIds = (ArrayList<String>) document.get("replicatedPeers");
-                        permissions = (Map<String, String>) document.get("permissions");
+                        if (document != null) {
+                            documentMap = convertDocumentToMap(document);
+                            ArrayList<String> replicatedPeerIds = (ArrayList<String>) documentMap.get("replicatedPeers");
+                            permissions = (Map<String, String>) documentMap.get("permissions");
 
-                        toBeReplicatedPeers = replicatedPeerIds.stream()
-                            .filter(peerDBMap::containsKey)
-                            .collect(Collectors.toMap(
-                                Function.identity(),
-                                peerId -> peerDBMap.get(peerId).getPort_no()
-                            ));
-                        isReadOnly = permissions != null && checkPermissions(permissions, peer_id, "r");
-                        if (permissions == null || document.get("owner").equals(peer_id)) {
-                            isReadOnly = false;
+                            if ((boolean) documentMap.get("isDeleted")) {
+                                toBeReplicatedPeers = replicatedPeerIds.stream()
+                                    .filter(peerDBMap::containsKey)
+                                    .collect(Collectors.toMap(
+                                        Function.identity(),
+                                        peerId -> peerDBMap.get(peerId).getPort_no()
+                                    ));
+                                isReadOnly = permissions != null && checkPermissions(permissions, peer_id, "r");
+                                if (permissions == null || documentMap.get("owner").equals(peer_id)) {
+                                    isReadOnly = false;
+                                }
+                                message = String.format("`%s` already exists on the network", Paths.get(parent, createFilePayload.getFileName()).normalize());
+                                statusCode = 409;
+                            } else {
+                                String owner = (String) documentMap.get("owner");
+                                String fileAbsolutePath = Paths.get(parent, createFilePayload.getFileName()).toString();
+                                message =  owner.equals(peer_id) ?
+                                    String.format("`%s` was deleted.\nRun `restore %s` to restore the file.", fileAbsolutePath, fileAbsolutePath) :
+                                    String.format("`%s` Not found!", fileAbsolutePath);
+                                statusCode = owner.equals(peer_id) ?
+                                    401 :
+                                    404;
+                            }
                         }
-                        message = String.format("`%s` already exists on the network", Paths.get(createFilePayload.getParent(), createFilePayload.getFileName()).normalize());
-                        statusCode = 409;
                     } else {
                         toBeReplicatedPeers = null;
                     }
@@ -531,7 +558,7 @@ class ClientHandler implements Runnable {
             }
         } else {
             statusCode = 404;
-            message = String.format("`%s` Not found!", createFilePayload.getParent());
+            message = String.format("`%s` Not found!", parent);
         }
 
         responsePayload = new CreateFileResponsePayload.Builder()

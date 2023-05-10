@@ -98,10 +98,12 @@ public class ClientHandler implements Runnable {
                 peerDBMap.put(peer_id, peerDBItem);
 
                 String message = String.format("CA: ACK: %s keys registered successfully", peer_id);
+                int statusCode = 200;
                 responsePayload = new ResponsePayload.Builder()
-                    .setStatusCode(200)
+                    .setStatusCode(statusCode)
                     .setMessage(message)
                     .build();
+
                 break;
             case "registerKey":
                 initPayload = (InitPayload) clientPayload;
@@ -119,7 +121,7 @@ public class ClientHandler implements Runnable {
                     .setKey(keyBytes)
                     .build();
 
-                int successfulyKeyRegistrationCount = 0;
+                int successfullyKeyRegistrationCount = 0;
                 StringBuilder keyRegistrationSuccessful = new StringBuilder();
                 for (Map.Entry<String, PeerDB> peerDBItem1: peerDBMap.entrySet()) {
                     // check if the peer is active and
@@ -137,7 +139,7 @@ public class ClientHandler implements Runnable {
                         if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode())) {
                             System.out.println(ANSI_BLUE + responsePayload.getMessage() + ANSI_RESET);
                             keyRegistrationSuccessful.append(peerDBItem1.getKey() + ", ");
-                            successfulyKeyRegistrationCount += 1;
+                            successfullyKeyRegistrationCount += 1;
                         } else {
                             System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);
                         }
@@ -145,9 +147,10 @@ public class ClientHandler implements Runnable {
                     }
                 }
 
-                message = successfulyKeyRegistrationCount > 0 ? String.format("CA: ACK: SecretKey registration successfully on %s", keyRegistrationSuccessful.substring(0, keyRegistrationSuccessful.length() - 2)) : String.format("CA: ACK: SecretKey registration failed");
+                message = successfullyKeyRegistrationCount > 0 ? String.format("CA: ACK: SecretKey registration successfully on %s", keyRegistrationSuccessful.substring(0, keyRegistrationSuccessful.length() - 2)) : String.format("CA: ACK: SecretKey registration failed");
+                statusCode = successfullyKeyRegistrationCount > 0 ? 200 : 400;
                 responsePayload = new ResponsePayload.Builder()
-                    .setStatusCode(200)
+                    .setStatusCode(statusCode)
                     .setMessage(message)
                     .build();
 
@@ -156,7 +159,6 @@ public class ClientHandler implements Runnable {
                 FetchKeyPayload fetchKeyPayload = (FetchKeyPayload) clientPayload;
                 String fetchKeyOf = fetchKeyPayload.getRequestingPeerId();
                 System.out.println(ANSI_BLUE + "Fetching Key for peer " + fetchKeyOf + ANSI_RESET);
-                int statusCode;
                 keyBytes = null;
 
                 if (peerDBMap.containsKey(fetchKeyOf)) {
@@ -177,6 +179,7 @@ public class ClientHandler implements Runnable {
                     .setMessage(message)
                     .setKey(keyBytes)
                     .build();
+
                 break;
             default:
                 responsePayload = new ResponsePayload.Builder()

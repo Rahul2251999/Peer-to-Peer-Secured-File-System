@@ -42,7 +42,7 @@ class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + ANSI_RESET);
+            // System.out.println(ANSI_BLUE + "Thread started: " + Thread.currentThread() + ANSI_RESET);
 
             clientWriter = new ObjectOutputStream(clientSocket.getOutputStream());
             clientReader = new ObjectInputStream(clientSocket.getInputStream());
@@ -97,8 +97,10 @@ class ClientHandler implements Runnable {
         String peer_id = peerInfo.getPeer_id();
         String command = clientPayload.getCommand();
 
-        System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
-        System.out.println("Executing: " + command + ANSI_RESET);
+        if (!command.equals(Commands.fileListing.name())) {
+            System.out.println(ANSI_BLUE + "Serving Peer: " + peer_id);
+            System.out.println("Executing: " + command + ANSI_RESET);
+        }
 
         ResponsePayload responsePayload = null;
         String message;
@@ -117,7 +119,7 @@ class ClientHandler implements Runnable {
                     .setMessage(message)
                     .build();
                 break;
-            case "updateKey":
+            case "updatePeerKey":
                 UpdateKeyPayload updateKeyPayload = (UpdateKeyPayload) clientPayload;
                 byte[] CAPublicKeyBytes = Base64.getDecoder().decode(properties.getProperty("CA_PBK"));
                 SecretKey secretKey = AES.getSecretKey(RSA.decrypt(updateKeyPayload.getKey(), RSA.getPublicKey(CAPublicKeyBytes)));
@@ -204,7 +206,7 @@ class ClientHandler implements Runnable {
                     .setStatusCode(400)
                     .setMessage(String.format("%s: Command handler not found for %s", PEER_ID, command))
                     .build();
-                System.out.println(ANSI_YELLOW + "Invalid command issued: " + ANSI_RESET);
+                System.out.println(ANSI_YELLOW + String.format("Invalid command issued: %s", command) + ANSI_RESET);
         }
 
         return responsePayload;

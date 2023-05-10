@@ -16,7 +16,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static app.constants.Constants.TerminalColors.ANSI_RED;
 import static app.constants.Constants.TerminalColors.ANSI_RESET;
@@ -39,7 +41,7 @@ public class FileOperations {
             byte[] encryptedFileNameBytes = AES.encrypt(peerLocalSecretKey, extractNameAndExtension.getFileName().getBytes());
             encryptedAbsoluteFileName = Base64.getUrlEncoder().encodeToString(encryptedFileNameBytes) + "." + extractNameAndExtension.getExtension();
             statusCode = 201;
-            message = String.format("%s: ACK: %s created", updateFilePayload.getPeerInfo().getPeer_id(), updateFilePayload.getFileName());
+            message = String.format("%s: ACK: %s created", peerId, updateFilePayload.getFileName());
         }
 
         Path path = Paths.get(peerEncryptedFilesPath, encryptedAbsoluteFileName);
@@ -110,7 +112,7 @@ public class FileOperations {
             .map(filePath -> filePath.getFileName().toString())
             .filter(encryptedFileName -> {
                 try {
-                    String absoluteFileName = getAbsolutePathFromEncryptedPath(encryptedFileName, peerLocalSecretKey);
+                    String absoluteFileName = getPlainTextPathFromEncryptedPath(encryptedFileName, peerLocalSecretKey);
                     return absoluteFileName.equals(plainTextFileName);
                 } catch (Exception e) {
                     System.err.println("An error occurred while decrypting file: " + e.getMessage());
@@ -121,7 +123,7 @@ public class FileOperations {
             .findFirst();
     }
 
-    private static String getAbsolutePathFromEncryptedPath(String encryptedPath, SecretKey peerLocalSecretKey) {
+    private static String getPlainTextPathFromEncryptedPath(String encryptedPath, SecretKey peerLocalSecretKey) {
         String absoluteFileName = null;
         try {
             ExtractNameAndExtension extractNameAndExtension = new ExtractNameAndExtension(encryptedPath);
@@ -155,9 +157,13 @@ public class FileOperations {
     public static String getPlainTextFromEncryptedFile(String encryptedFilePath, SecretKey key) throws Exception {
         byte[] encryptedBytes = Files.readAllBytes(Paths.get(encryptedFilePath));
 
-        byte[] decryptedBytes = AES.decrypt(key, encryptedBytes);
+        if (encryptedBytes != null && encryptedBytes.length > 0) {
+            byte[] decryptedBytes = AES.decrypt(key, encryptedBytes);
 
-        return new String(decryptedBytes, StandardCharsets.UTF_8);
+            return new String(decryptedBytes, StandardCharsets.UTF_8);
+        } else {
+            return new String("".getBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     public static void writeDataToPlainTextFile(String data, String plainTextFilePath) {
@@ -174,5 +180,19 @@ public class FileOperations {
             System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
             e.printStackTrace();
         }
+    }
+
+    public static Set<String> getPlainTextPaths(String encryptedFilesPath, SecretKey peerLocalSecretKey) {
+        Set<String> plainTextPaths = new HashSet<>();
+
+        File directory = new File(encryptedFilesPath);
+        File[] files = directory.listFiles();
+        for (File file: files) {
+            String encryptedFileName = file.getName();
+            String plainTextPath = getPlainTextPathFromEncryptedPath(encryptedFileName, peerLocalSecretKey);
+            plainTextPaths.add(plainTextPath);
+        }
+
+        return plainTextPaths;
     }
 }
