@@ -104,6 +104,17 @@ public class FileOperations {
             .build();
     }
 
+    public static boolean delete(String plainTextFileName, String peerEncryptedFilesPath) {
+        Path absoluteFileNamePath = Paths.get(peerEncryptedFilesPath, plainTextFileName);
+        File file = new File(absoluteFileNamePath.toString());
+
+        if (file.delete()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public static Optional<String> getEncryptedFileNameIfPresentInStorageBucket(String peerEncryptedFilesPath, String plainTextFileName, SecretKey peerLocalSecretKey) throws IOException {
         Path path = Paths.get(peerEncryptedFilesPath);
 
@@ -135,8 +146,9 @@ public class FileOperations {
             String decryptedFileName = new String(decryptedFileNameBytes, StandardCharsets.UTF_8);
             absoluteFileName = decryptedFileName + "." + extractNameAndExtension.getExtension();
         } catch (Exception e) {
-            System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
-            e.printStackTrace();
+//            System.out.println(ANSI_RED + "Exception: " + e.getMessage() + ANSI_RESET);
+//            e.printStackTrace();
+            return encryptedPath;
         }
         return absoluteFileName;
     }

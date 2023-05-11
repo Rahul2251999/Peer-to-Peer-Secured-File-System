@@ -113,11 +113,12 @@ public class ClientHandler implements Runnable {
                 peerDBItem = peerDBMap.get(peer_id);
                 peerDBItem.setKey(key);
                 peerDBMap.put(peer_id, peerDBItem);
+                PeerInfo CAInfo = new PeerInfo("CA", 9000);
 
                 keyBytes = RSA.encrypt(key.getEncoded(), KeyManager.getPrivateKey());
                 UpdateKeyPayload updateKeyPayload = new UpdateKeyPayload.Builder()
                     .setCommand(Commands.updatePeerKey.name())
-                    .setPeerInfo(peerInfo)
+                    .setPeerInfo(CAInfo)
                     .setKey(keyBytes)
                     .build();
 

@@ -4,16 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="add features: DeleteFile, ReadFile, RestoreFile">
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileListingPayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileListingResponsePayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/FileReplicateRequestPayload.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/Models/Payloads/UpdatePermissionsPayload.java" afterDir="false" />
+    <list default="true" id="4f962be1-18cf-4098-ab9b-d4dfdfab3aa2" name="Changes" comment="added feature: chmod">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/CertificateAuthority.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/CA/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/TextEditor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/app/FDS/MaliciousActivityDetector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/FDS/MaliciousActivityDetector.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/peer/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/utils/FileOperations.java" afterDir="false" />
     </list>
@@ -73,7 +68,7 @@
       <recent name="app.Models.Payloads" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.peer 3">
+  <component name="RunManager" selected="Application.CA">
     <configuration name="CA" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="app.CA.CertificateAuthority" />
       <module name="Peer File Sharing" />
@@ -333,7 +328,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682652641860</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="added feature: chmod">
+      <created>1683737590321</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1683737590321</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,7 +350,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add init functionality" />
     <MESSAGE value="add db" />
     <MESSAGE value="remove MongoDB for peerinfo, add asymmetric encryption to encrypt a symmetric key, rename commands, add KeyManager, add more Payloads" />
     <MESSAGE value="FDS now responds using Payloads" />
@@ -373,30 +374,31 @@
     <MESSAGE value="improve logs" />
     <MESSAGE value="add support for writing to files (WIP)" />
     <MESSAGE value="add features: DeleteFile, ReadFile, RestoreFile" />
-    <option name="LAST_COMMIT_MESSAGE" value="add features: DeleteFile, ReadFile, RestoreFile" />
+    <MESSAGE value="added feature: chmod" />
+    <option name="LAST_COMMIT_MESSAGE" value="added feature: chmod" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>165</line>
-          <option name="timeStamp" value="221" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>509</line>
-          <option name="timeStamp" value="237" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
-          <line>415</line>
-          <option name="timeStamp" value="241" />
-        </line-breakpoint>
         <breakpoint type="java-exception">
           <properties class="java.io.EOFException" package="java.io" />
           <option name="timeStamp" value="175" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/MaliciousActivityDetector.java</url>
+          <line>102</line>
+          <option name="timeStamp" value="249" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/MaliciousActivityDetector.java</url>
+          <line>95</line>
+          <option name="timeStamp" value="250" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/app/FDS/ClentHandler.java</url>
+          <line>462</line>
+          <option name="timeStamp" value="252" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

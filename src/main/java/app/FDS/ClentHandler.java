@@ -524,7 +524,7 @@ class ClientHandler implements Runnable {
                             ArrayList<String> replicatedPeerIds = (ArrayList<String>) documentMap.get("replicatedPeers");
                             permissions = (Map<String, String>) documentMap.get("permissions");
 
-                            if ((boolean) documentMap.get("isDeleted")) {
+                            if (!(boolean) documentMap.get("isDeleted")) {
                                 toBeReplicatedPeers = replicatedPeerIds.stream()
                                     .filter(peerDBMap::containsKey)
                                     .collect(Collectors.toMap(

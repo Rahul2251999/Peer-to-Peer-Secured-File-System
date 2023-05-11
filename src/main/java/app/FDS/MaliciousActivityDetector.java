@@ -82,7 +82,7 @@ public class MaliciousActivityDetector implements Runnable {
                                 .build();
 
                             Socket peerSocket = new Socket(properties.getProperty("IP_ADDRESS"), peerDB.getPort_no());
-                            System.out.println(ANSI_BLUE + "Connecting to Peer: " + peerDB.getPeer_id() + ANSI_RESET);
+                            System.out.println(ANSI_BLUE + String.format("Checking for Malicious Activity in Peer: %s", peerDB.getPeer_id()) + ANSI_RESET);
 
                             ObjectOutputStream peerWriter = new ObjectOutputStream(peerSocket.getOutputStream());
                             ObjectInputStream peerReader = new ObjectInputStream(peerSocket.getInputStream());
@@ -103,6 +103,8 @@ public class MaliciousActivityDetector implements Runnable {
                                     for (String replicatedPeerId: replicatedPeerIds) {
                                         if (!replicatedPeerId.equals(peerId)) {
                                             PeerInfo replicatedPeerInfo = peerDBMap.get(replicatedPeerId);
+                                            System.out.println(ANSI_RED + String.format("`%s` not found", file) + ANSI_RESET);
+                                            System.out.println(ANSI_BLUE + String.format("Trying to replicate `%s` from %s to %s", file, replicatedPeerId, peerDB.getPeer_id()) + ANSI_RESET);
 
                                             PeerInfo toBeReplicatedPeer = new PeerInfo(peerDB.getPeer_id(), peerDB.getPort_no());
                                             Socket ownerPeerSocket = new Socket(properties.getProperty("IP_ADDRESS"), replicatedPeerInfo.getPort_no());
@@ -123,6 +125,7 @@ public class MaliciousActivityDetector implements Runnable {
 
                                             // if the replication is successful close, else try bruteforce for other peers
                                             if (Constants.HttpStatus.twoHundredClass.contains(responsePayload.getStatusCode())) {
+                                                System.out.println(ANSI_BLUE + String.format("Replicating `%s` on %s successfully", file, peerDB.getPeer_id()) + ANSI_RESET);
                                                 break;
                                             } else {
                                                 System.out.println(ANSI_RED + responsePayload.getMessage() + ANSI_RESET);

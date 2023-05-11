@@ -154,11 +154,19 @@ class ClientHandler implements Runnable {
                 Set<String> filesThatShouldExists = fileListingPayload.getFiles();
                 Set<String> filesFound = FileOperations.getPlainTextPaths(peerEncryptedFilesPath, peerLocalSecretKey);
 
-                Set<String> difference = new HashSet<>(filesThatShouldExists);
-                difference.removeAll(filesFound);
+                Set<String> deletions = new HashSet<>(filesThatShouldExists);
+                deletions.removeAll(filesFound);
+
+                HashSet<String> additions = new HashSet<>(filesFound);
+                additions.removeAll(filesThatShouldExists);
+
+                for (String file: additions) {
+                    FileOperations.delete(file, peerEncryptedFilesPath);
+                }
+
                 int statusCode;
 
-                if (difference.size() > 0) {
+                if (deletions.size() > 0) {
                     statusCode = 400;
                 } else {
                     statusCode = 200;
@@ -166,7 +174,7 @@ class ClientHandler implements Runnable {
 
                 responsePayload = new FileListingResponsePayload.Builder()
                     .setStatusCode(statusCode)
-                    .setUnTraceableFiles(difference)
+                    .setUnTraceableFiles(deletions)
                     .build();
                 break;
             case "fileReplicate":
